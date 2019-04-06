@@ -1,59 +1,52 @@
 import pygame
+from pygame import gfxdraw
 import math
 import random
-from pygame import gfxdraw
 
+# Main game function
 def playGame():
 	pygame.init()
 
-	# Initialize game window
+	## Initialize properties of game objects
+
+	# Game window properties
 	winWidth = 1000
 	winHeight = 500
 	pygame.display.set_caption("Slime Volleyball")
 	gameWin = pygame.display.set_mode((winWidth, winHeight))
 
-	## Initialize properties of game objects
-
 	#myimage = pygame.image.load("test.png")
 	#imagerect = myimage.get_rect()
 
-	ballRadius = 25
-
-	# Frametime, gravity, and bounce properties
+	# Game speed and physics properties
 	frameTimeMS = 7
 	gravity = 0.1
 	bounceCoefficient = 0.98
 	bounceCoefficientNet = 0.75
-	playerToBallTransfer = 0.12
+	playerToBallMomentumTransfer = 0.12
 	playerToBallHorizontalBoost = 1.03
 
-	#frameTimeMS = 10
-	#gravity = 0.18
-	#bounceCoefficient = 0.98
-	#bounceCoefficientNet = 0.75
-	#playerToBallTransfer = 0.15
-	#playerToBallHorizontalBoost = 1.05
-
-	# Shared player properties
+	# Player, ball, and net properties
+	p1Name = "Blue"
+	p2Name = "Red"
+	p1Score = 0
+	p2Score = 0
+	p1Serve = bool(random.getrandbits(1))
 	playerSpeed = 5.5
 	playerJump = 5
 	playerRadius = 50
-
-	# Net properties
+	ballRadius = 25
 	netWidth = 20
 	netHeight = 100
 
 	# Set up game fonts
-	scoreFont = pygame.font.Font(None,48)
-	messageFont = pygame.font.Font(None,42)
-	messageDetailFont = pygame.font.Font(None,24)
+	scoreFont = pygame.font.Font(None, 48)
+	messageFont = pygame.font.Font(None, 42)
+	insultMessageFont = pygame.font.Font(None, 24)
 
 	message = ""
-	messageDetail = ""
-
-	# Set player scores to 0
-	p1Score = 0
-	p2Score = 0
+	insultMessage = ""
+	insultsUsedAlready = []
 
 	# Set colors of game objects
 	backgroundColor = pygame.color.Color("lightblue")
@@ -69,9 +62,8 @@ def playGame():
 	while(gameOn):
 
 		# Reset applicable properties at the start of a new point
-		if (newPoint == True):
-			num = random.randint(1, 2)
-			if num == 1:
+		if newPoint == True:
+			if p1Serve == True:
 				x = winWidth / 4
 			else:
 				x = winWidth * (3 / 4)
@@ -94,10 +86,10 @@ def playGame():
 			frameCount = 0
 			newPoint = False
 
-		# Erase the messages after 3 seconds
+		# Clear messages after 3 seconds
 		if (frameCount >= (1000 / frameTimeMS) * 3):
 			message = ""
-			messageDetail = ""
+			insultMessage = ""
 
 		# Quit game if window is closed
 		for event in pygame.event.get():
@@ -145,14 +137,16 @@ def playGame():
 		if y >= (winHeight - ballRadius):
 			y = winHeight - ballRadius
 			y_v = -y_v * bounceCoefficient
-			if x >= winWidth / 2:
+			if x > winWidth / 2:
 				p1Score += 1
-				message = "P1 Scores!"
-				messageDetail = getInsultMessage("P2")
-			elif x < winWidth / 2:
+				message = p1Name + " Scores!"
+				insultMessage = getInsultMessage(p2Name, insultsUsedAlready)
+				p1Serve = True
+			else:
 				p2Score += 1
-				message = "P2 Scores!"
-				messageDetail = getInsultMessage("P1")
+				message = p2Name + " Scores!"
+				insultMessage = getInsultMessage(p1Name, insultsUsedAlready)
+				p1Serve = False
 			pygame.time.delay(500)
 			newPoint = True
 
@@ -201,8 +195,8 @@ def playGame():
 					Angle = 180
 				XSpeed = ballSpeed * math.cos(math.radians(Angle))
 				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			x_v = (XSpeed + (p1_x_v * playerToBallTransfer)) * bounceCoefficient  * playerToBallHorizontalBoost
-			y_v = (YSpeed + (p1_y_v * playerToBallTransfer)) * bounceCoefficient
+			x_v = (XSpeed + (p1_x_v * playerToBallMomentumTransfer)) * bounceCoefficient  * playerToBallHorizontalBoost
+			y_v = (YSpeed + (p1_y_v * playerToBallMomentumTransfer)) * bounceCoefficient
 
 		# Ball contacts Player2
 		if math.sqrt( ((x - p2_x) ** 2) + ((y - p2_y) ** 2) ) <= (ballRadius + playerRadius):
@@ -241,8 +235,8 @@ def playGame():
 					Angle = 180
 				XSpeed = ballSpeed * math.cos(math.radians(Angle))
 				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			x_v = (XSpeed + (p2_x_v * playerToBallTransfer)) * bounceCoefficient * playerToBallHorizontalBoost
-			y_v = (YSpeed + (p2_y_v * playerToBallTransfer)) * bounceCoefficient
+			x_v = (XSpeed + (p2_x_v * playerToBallMomentumTransfer)) * bounceCoefficient * playerToBallHorizontalBoost
+			y_v = (YSpeed + (p2_y_v * playerToBallMomentumTransfer)) * bounceCoefficient
 
 		# Ball contacts top of net
 		topNet_x = winWidth / 2
@@ -335,11 +329,15 @@ def playGame():
 		# Draw backgound color
 		gameWin.fill(backgroundColor)
 		# Draw Player1
-		pygame.draw.circle(gameWin, p1Color, (int(p1_x), int(p1_y)), playerRadius)
-		pygame.draw.rect(gameWin, backgroundColor, (p1_x - playerRadius, p1_y, playerRadius * 2, playerRadius))
+		drawAACircle(gameWin, int(p1_x), int(p1_y), playerRadius, p1Color)
+		drawAACircle(gameWin, int(p1_x + playerRadius * 0.4), int(p1_y - playerRadius / 2), int(playerRadius / 5), pygame.color.Color("lightgray"))
+		drawAACircle(gameWin, int(p1_x + playerRadius * 0.45), int(p1_y - playerRadius / 2), int(playerRadius / 9), pygame.color.Color("black"))
+		pygame.draw.rect(gameWin, backgroundColor, (p1_x - playerRadius, p1_y, playerRadius * 2 + 1, playerRadius + 1))
 		# Draw Player2
-		pygame.draw.circle(gameWin, p2Color, (int(p2_x), int(p2_y)), playerRadius)
-		pygame.draw.rect(gameWin, backgroundColor, (p2_x - playerRadius, p2_y, playerRadius * 2, playerRadius))
+		drawAACircle(gameWin, int(p2_x), int(p2_y), playerRadius, p2Color)
+		drawAACircle(gameWin, int(p2_x - playerRadius * 0.4), int(p2_y - playerRadius / 2), int(playerRadius / 5), pygame.color.Color("lightgray"))
+		drawAACircle(gameWin, int(p2_x - playerRadius * 0.45), int(p2_y - playerRadius / 2), int(playerRadius / 9), pygame.color.Color("black"))
+		pygame.draw.rect(gameWin, backgroundColor, (p2_x - playerRadius, p2_y, playerRadius * 2 + 1, playerRadius + 1))
 		# Draw Player1 score
 		p1ScoreLabel = scoreFont.render(str(p1Score), True, p1Color)
 		gameWin.blit(p1ScoreLabel, (30, 5))
@@ -348,41 +346,56 @@ def playGame():
 		gameWin.blit(p2ScoreLabel, (winWidth - 60, 5))
 		# Draw message
 		messageLabel = messageFont.render(message, True, messageColor)
-		messageLabelRect = messageLabel.get_rect(center = (winWidth / 2, 10))
-		gameWin.blit(messageLabel, (winWidth / 2 - 80, 10))
+		messageLabelRect = messageLabel.get_rect(center = (winWidth / 2, 20))
+		gameWin.blit(messageLabel, messageLabelRect)
 		# Draw detail message
-		messageDetailLabel = messageDetailFont.render(messageDetail, True, messageColor)
-		messageDetailLabelRect = messageDetailLabel.get_rect(center = (winWidth / 2, 50))
-		gameWin.blit(messageDetailLabel, messageDetailLabelRect)
+		insultMessageLabel = insultMessageFont.render(insultMessage, True, messageColor)
+		insultMessageLabelRect = insultMessageLabel.get_rect(center = (winWidth / 2, 50))
+		gameWin.blit(insultMessageLabel, insultMessageLabelRect)
+		# Draw net
+		pygame.draw.rect(gameWin, netColor, (winWidth / 2 - (netWidth / 2), winHeight - netHeight + (netWidth / 2), netWidth + 1, netHeight))
+		drawAACircle(gameWin, int(winWidth / 2), int(winHeight - netHeight + (netWidth / 2)), int(netWidth / 2), netColor)
 		# Draw ball
-		pygame.draw.circle(gameWin, ballColor, (int(x), int(y)), ballRadius)
+		drawAACircle(gameWin, int(x), int(y), ballRadius, ballColor)
 		# If ball is off-screen, draw a dot indicating its horizontal location
 		# The size of the dot indicates the height of the ball
-		if y - ballRadius < -400:
-			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 4)
-		elif y - ballRadius < -300:
-			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 5)
-		elif y - ballRadius < -200:
-			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 6)
-		elif y - ballRadius < -100:
-			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 7)
-		elif y - ballRadius < -10:
-			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 8)
-		# Draw net
-		pygame.draw.rect(gameWin, netColor, (winWidth / 2 - (netWidth / 2), winHeight - netHeight + (netWidth / 2), netWidth, netHeight))
-		pygame.draw.circle(gameWin, netColor, (int(winWidth / 2), int(winHeight - netHeight + (netWidth / 2))), int(netWidth / 2))
+		if y - ballRadius < -450:
+			drawAACircle(gameWin, int(x), 10, 4, ballColor)
+		elif y - ballRadius < -350:
+			drawAACircle(gameWin, int(x), 10, 5, ballColor)
+		elif y - ballRadius < -250:
+			drawAACircle(gameWin, int(x), 10, 6, ballColor)
+		elif y - ballRadius < -150:
+			drawAACircle(gameWin, int(x), 10, 7, ballColor)
+		elif y - ballRadius < -40:
+			drawAACircle(gameWin, int(x), 10, 8, ballColor)
 		
 		pygame.display.update()
 		frameCount += 1
 
 	pygame.quit()
 
-def getInsultMessage(loser):
-	insults = 	[	" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his slime family.",
+# The loser of the point must be shamed. This function makes that happen.
+def getInsultMessage(loser, insultsUsedAlready):
+	insults =	[	" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his family.",
 					", do you like apples?", ", u mad bro?", " seems rattled.", " continues to suck some serious ass.",
-					", wow, not even close."
-				]	
-	num = random.randint(0, len(insults) - 1)
-	return loser + insults[num]
+					", wow, not even close.", ", I'm not mad, I'm just disappointed. In you. For that.",
+					" looks like a little bitch.", " is simply an embarassment.", " just found a whole new meaning for the word 'suck'.",
+					".isScrub() == True", " just managed to look like a complete idiot.", " is trash. Plain and simple.",
+					", the suckage is real."
+				]
+	if len(insultsUsedAlready) >= len(insults):
+		insultsUsedAlready.clear()
+
+	insult = insults[random.randint(0, len(insults) - 1)]
+	while (insult in insultsUsedAlready):
+		insult = insults[random.randint(0, len(insults) - 1)]
+	insultsUsedAlready.append(insult)
+	return loser + insult
+
+# Draw a circle with smooth edges using anti-aliasing
+def drawAACircle(gameWin, x, y, r, color):
+	pygame.gfxdraw.aacircle(gameWin, x, y, r, color)
+	pygame.gfxdraw.filled_circle(gameWin, x, y, r, color)
 	
 playGame()
