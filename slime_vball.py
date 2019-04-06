@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+from pygame import gfxdraw
 
 def playGame():
 	pygame.init()
@@ -10,7 +11,6 @@ def playGame():
 	winHeight = 500
 	pygame.display.set_caption("Slime Volleyball")
 	gameWin = pygame.display.set_mode((winWidth, winHeight))
-	frameTimeMS = 10
 
 	## Initialize properties of game objects
 
@@ -19,16 +19,24 @@ def playGame():
 
 	ballRadius = 25
 
-	# Gravity/bounce properties
-	gravity = 0.18
+	# Frametime, gravity, and bounce properties
+	frameTimeMS = 7
+	gravity = 0.1
 	bounceCoefficient = 0.98
 	bounceCoefficientNet = 0.75
-	playerToBallTransfer = 0.15
-	playerToBallHorizontalBoost = 1.05
+	playerToBallTransfer = 0.12
+	playerToBallHorizontalBoost = 1.03
+
+	#frameTimeMS = 10
+	#gravity = 0.18
+	#bounceCoefficient = 0.98
+	#bounceCoefficientNet = 0.75
+	#playerToBallTransfer = 0.15
+	#playerToBallHorizontalBoost = 1.05
 
 	# Shared player properties
-	playerSpeed = 6.5
-	playerJump = 7
+	playerSpeed = 5.5
+	playerJump = 5
 	playerRadius = 50
 
 	# Net properties
@@ -60,6 +68,7 @@ def playGame():
 	newPoint = True
 	while(gameOn):
 
+		# Reset applicable properties at the start of a new point
 		if (newPoint == True):
 			num = random.randint(1, 2)
 			if num == 1:
@@ -85,7 +94,8 @@ def playGame():
 			frameCount = 0
 			newPoint = False
 
-		if (frameCount >= 300):
+		# Erase the messages after 3 seconds
+		if (frameCount >= (1000 / frameTimeMS) * 3):
 			message = ""
 			messageDetail = ""
 
@@ -356,7 +366,7 @@ def playGame():
 			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 6)
 		elif y - ballRadius < -100:
 			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 7)
-		elif y - ballRadius < 0:
+		elif y - ballRadius < -10:
 			pygame.draw.circle(gameWin, ballColor, (int(x), 10), 8)
 		# Draw net
 		pygame.draw.rect(gameWin, netColor, (winWidth / 2 - (netWidth / 2), winHeight - netHeight + (netWidth / 2), netWidth, netHeight))
@@ -368,9 +378,10 @@ def playGame():
 	pygame.quit()
 
 def getInsultMessage(loser):
-
-	insults = [" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his slime family.",
-				", do you like apples?", ", u mad bro?"]
+	insults = 	[	" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his slime family.",
+					", do you like apples?", ", u mad bro?", " seems rattled.", " continues to suck some serious ass.",
+					", wow, not even close."
+				]	
 	num = random.randint(0, len(insults) - 1)
 	return loser + insults[num]
 	
