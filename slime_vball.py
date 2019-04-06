@@ -10,6 +10,7 @@ def playGame():
 	winHeight = 500
 	pygame.display.set_caption("Slime Volleyball")
 	gameWin = pygame.display.set_mode((winWidth, winHeight))
+	frameTimeMS = 10
 
 	## Initialize properties of game objects
 
@@ -23,6 +24,7 @@ def playGame():
 	bounceCoefficient = 0.98
 	bounceCoefficientNet = 0.75
 	playerToBallTransfer = 0.15
+	playerToBallHorizontalBoost = 1.05
 
 	# Shared player properties
 	playerSpeed = 6.5
@@ -136,11 +138,11 @@ def playGame():
 			if x >= winWidth / 2:
 				p1Score += 1
 				message = "P1 Scores!"
-				messageDetail = getMessageDetail("P2")
+				messageDetail = getInsultMessage("P2")
 			elif x < winWidth / 2:
 				p2Score += 1
 				message = "P2 Scores!"
-				messageDetail = getMessageDetail("P1")
+				messageDetail = getInsultMessage("P1")
 			pygame.time.delay(500)
 			newPoint = True
 
@@ -189,7 +191,7 @@ def playGame():
 					Angle = 180
 				XSpeed = ballSpeed * math.cos(math.radians(Angle))
 				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			x_v = (XSpeed + (p1_x_v * playerToBallTransfer)) * bounceCoefficient
+			x_v = (XSpeed + (p1_x_v * playerToBallTransfer)) * bounceCoefficient  * playerToBallHorizontalBoost
 			y_v = (YSpeed + (p1_y_v * playerToBallTransfer)) * bounceCoefficient
 
 		# Ball contacts Player2
@@ -229,7 +231,7 @@ def playGame():
 					Angle = 180
 				XSpeed = ballSpeed * math.cos(math.radians(Angle))
 				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			x_v = (XSpeed + (p2_x_v * playerToBallTransfer)) * bounceCoefficient
+			x_v = (XSpeed + (p2_x_v * playerToBallTransfer)) * bounceCoefficient * playerToBallHorizontalBoost
 			y_v = (YSpeed + (p2_y_v * playerToBallTransfer)) * bounceCoefficient
 
 		# Ball contacts top of net
@@ -317,7 +319,7 @@ def playGame():
 			p2_x = winWidth / 2 + netWidth / 2 + playerRadius
 
 		# Control framerate
-		pygame.time.delay(10)
+		pygame.time.delay(frameTimeMS)
 
 		## Draw game objects
 		# Draw backgound color
@@ -336,10 +338,12 @@ def playGame():
 		gameWin.blit(p2ScoreLabel, (winWidth - 60, 5))
 		# Draw message
 		messageLabel = messageFont.render(message, True, messageColor)
+		messageLabelRect = messageLabel.get_rect(center = (winWidth / 2, 10))
 		gameWin.blit(messageLabel, (winWidth / 2 - 80, 10))
 		# Draw detail message
 		messageDetailLabel = messageDetailFont.render(messageDetail, True, messageColor)
-		gameWin.blit(messageDetailLabel, (winWidth / 2 - 60, 40))
+		messageDetailLabelRect = messageDetailLabel.get_rect(center = (winWidth / 2, 50))
+		gameWin.blit(messageDetailLabel, messageDetailLabelRect)
 		# Draw ball
 		pygame.draw.circle(gameWin, ballColor, (int(x), int(y)), ballRadius)
 		# If ball is off-screen, draw a dot indicating its horizontal location
@@ -363,7 +367,11 @@ def playGame():
 
 	pygame.quit()
 
-def getMessageDetail(loser):
-	return "get rekt, " + str(loser)
+def getInsultMessage(loser):
+
+	insults = [" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his slime family.",
+				", do you like apples?", ", u mad bro?"]
+	num = random.randint(0, len(insults) - 1)
+	return loser + insults[num]
 	
 playGame()
