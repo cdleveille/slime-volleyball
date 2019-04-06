@@ -25,7 +25,7 @@ def playGame():
 	playerToBallTransfer = 0.15
 
 	# Shared player properties
-	playerSpeed = 7
+	playerSpeed = 6.5
 	playerJump = 7
 	playerRadius = 50
 
@@ -35,8 +35,11 @@ def playGame():
 
 	# Set up game fonts
 	scoreFont = pygame.font.Font(None,48)
-	messageFont = pygame.font.Font(None,36)
+	messageFont = pygame.font.Font(None,42)
 	messageDetailFont = pygame.font.Font(None,24)
+
+	message = ""
+	messageDetail = ""
 
 	# Set player scores to 0
 	p1Score = 0
@@ -77,7 +80,12 @@ def playGame():
 			p2_y_v = 0
 			p2JumpEnabled = True
 
+			frameCount = 0
 			newPoint = False
+
+		if (frameCount >= 300):
+			message = ""
+			messageDetail = ""
 
 		# Quit game if window is closed
 		for event in pygame.event.get():
@@ -127,10 +135,13 @@ def playGame():
 			y_v = -y_v * bounceCoefficient
 			if x >= winWidth / 2:
 				p1Score += 1
+				message = "P1 Scores!"
+				messageDetail = getMessageDetail("P2")
 			elif x < winWidth / 2:
 				p2Score += 1
-
-			pygame.time.delay(1000)
+				message = "P2 Scores!"
+				messageDetail = getMessageDetail("P1")
+			pygame.time.delay(500)
 			newPoint = True
 
 		# Ball contacts wall
@@ -267,10 +278,10 @@ def playGame():
 		elif y > winHeight - netHeight + netWidth:
 			if abs((winWidth / 2) - (x + ballRadius)) <= netWidth / 2:
 				x = (winWidth / 2) - (netWidth / 2) - ballRadius
-				x_v = -x_v * bounceCoefficient
+				x_v = -x_v * bounceCoefficientNet
 			elif abs((x - ballRadius) - (winWidth / 2)) <= netWidth / 2:
 				x = (winWidth / 2) + (netWidth / 2) + ballRadius
-				x_v = -x_v * bounceCoefficient
+				x_v = -x_v * bounceCoefficientNet
 
 		## Update game objects for next frame
 
@@ -323,6 +334,12 @@ def playGame():
 		# Draw Player1 score
 		p2ScoreLabel = scoreFont.render(str(p2Score), True, p2Color)
 		gameWin.blit(p2ScoreLabel, (winWidth - 60, 5))
+		# Draw message
+		messageLabel = messageFont.render(message, True, messageColor)
+		gameWin.blit(messageLabel, (winWidth / 2 - 80, 10))
+		# Draw detail message
+		messageDetailLabel = messageDetailFont.render(messageDetail, True, messageColor)
+		gameWin.blit(messageDetailLabel, (winWidth / 2 - 60, 40))
 		# Draw ball
 		pygame.draw.circle(gameWin, ballColor, (int(x), int(y)), ballRadius)
 		# If ball is off-screen, draw a dot indicating its horizontal location
@@ -342,7 +359,11 @@ def playGame():
 		pygame.draw.circle(gameWin, netColor, (int(winWidth / 2), int(winHeight - netHeight + (netWidth / 2))), int(netWidth / 2))
 		
 		pygame.display.update()
+		frameCount += 1
 
 	pygame.quit()
+
+def getMessageDetail(loser):
+	return "get rekt, " + str(loser)
 	
 playGame()
