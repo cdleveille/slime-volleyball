@@ -5,10 +5,7 @@ import random
 
 # Main game function
 def playGame():
-	pygame.init()
-
 	## Initialize properties of game objects
-
 	# Game window properties
 	winWidth = 1000
 	winHeight = 500
@@ -32,7 +29,7 @@ def playGame():
 	p1Score = 0
 	p2Score = 0
 	p1Serve = bool(random.getrandbits(1))
-	playerSpeed = 5.5
+	playerSpeed = 5
 	playerJump = 5
 	playerRadius = 50
 	pupilFactor = playerRadius / 14
@@ -40,12 +37,11 @@ def playGame():
 	netWidth = 20
 	netHeight = 100
 
-	# Set up game fonts
+	# Set up game fonts and messages
 	scoreFont = pygame.font.Font(None, 48)
 	messageFont = pygame.font.Font(None, 42)
 	insultMessageFont = pygame.font.Font(None, 24)
-
-	message = ""
+	message = "Game On!"
 	insultMessage = ""
 	insultsUsedAlready = []
 
@@ -61,7 +57,6 @@ def playGame():
 	gameOn = True
 	newPoint = True
 	while(gameOn):
-
 		# Reset applicable properties at the start of a new point
 		if newPoint == True:
 			if p1Serve == True:
@@ -160,126 +155,16 @@ def playGame():
 			x_v = -x_v * bounceCoefficient
 
 		# Ball contacts Player1
-		if math.sqrt( ((x - p1_x) ** 2) + ((y - p1_y) ** 2) ) <= (ballRadius + playerRadius):
-			ballSpeed = math.sqrt((x_v ** 2) + (y_v ** 2))
-			XDiff = -(x - p1_x)
-			YDiff = -(y - p1_y)
-			if XDiff > 0:
-				if YDiff > 0:
-					Angle = math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-				elif YDiff < 0:
-					Angle = math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-			elif XDiff < 0:
-				if YDiff > 0:
-					Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-				elif YDiff < 0:
-					Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-			elif XDiff == 0:
-				if YDiff > 0:
-					Angle = -90
-				else:
-					Angle = 90
-				XSpeed = ballSpeed * math.cos(math.radians(Angle))
-				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			elif YDiff == 0:
-				if XDiff < 0:
-					Angle = 0
-				else:
-					Angle = 180
-				XSpeed = ballSpeed * math.cos(math.radians(Angle))
-				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			x_v = (XSpeed + (p1_x_v * playerToBallMomentumTransfer)) * bounceCoefficient  * playerToBallHorizontalBoost
-			y_v = (YSpeed + (p1_y_v * playerToBallMomentumTransfer)) * bounceCoefficient
+		if ballContactsCircle(x, y, ballRadius, p1_x, p1_y, playerRadius) == True:
+			(x_v, y_v) = getBallCircleVelocityVector(x, y, x_v, y_v, p1_x, p1_y, p1_x_v, p1_y_v, bounceCoefficient, playerToBallMomentumTransfer, playerToBallHorizontalBoost)
 
 		# Ball contacts Player2
-		if math.sqrt( ((x - p2_x) ** 2) + ((y - p2_y) ** 2) ) <= (ballRadius + playerRadius):
-			ballSpeed = math.sqrt((x_v ** 2) + (y_v ** 2))
-			XDiff = -(x - p2_x)
-			YDiff = -(y - p2_y)
-			if XDiff > 0:
-				if YDiff > 0:
-					Angle = math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-				elif YDiff < 0:
-					Angle = math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-			elif XDiff < 0:
-				if YDiff > 0:
-					Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-				elif YDiff < 0:
-					Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-			elif XDiff == 0:
-				if YDiff > 0:
-					Angle = -90
-				else:
-					Angle = 90
-				XSpeed = ballSpeed * math.cos(math.radians(Angle))
-				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			elif YDiff == 0:
-				if XDiff < 0:
-					Angle = 0
-				else:
-					Angle = 180
-				XSpeed = ballSpeed * math.cos(math.radians(Angle))
-				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			x_v = (XSpeed + (p2_x_v * playerToBallMomentumTransfer)) * bounceCoefficient * playerToBallHorizontalBoost
-			y_v = (YSpeed + (p2_y_v * playerToBallMomentumTransfer)) * bounceCoefficient
+		if ballContactsCircle(x, y, ballRadius, p2_x, p2_y, playerRadius) == True:
+			(x_v, y_v) = getBallCircleVelocityVector(x, y, x_v, y_v, p2_x, p2_y, p2_x_v, p2_y_v, bounceCoefficient, playerToBallMomentumTransfer, playerToBallHorizontalBoost)
 
 		# Ball contacts top of net
-		topNet_x = winWidth / 2
-		topNet_y = winHeight - netHeight + (netWidth / 2)
-		if math.sqrt( ((x - topNet_x) ** 2) + ((y - topNet_y) ** 2) ) <= (ballRadius + (netWidth / 2)):
-			ballSpeed = math.sqrt((x_v ** 2) + (y_v ** 2))
-			XDiff = -(x - topNet_x)
-			YDiff = -(y - topNet_y)
-			if XDiff > 0:
-				if YDiff > 0:
-					Angle = math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-				elif YDiff < 0:
-					Angle = math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-			elif XDiff < 0:
-				if YDiff > 0:
-					Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-				elif YDiff < 0:
-					Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
-					XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-					YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-			elif XDiff == 0:
-				if YDiff > 0:
-					Angle = -90
-				else:
-					Angle = 90
-				XSpeed = ballSpeed * math.cos(math.radians(Angle))
-				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			elif YDiff == 0:
-				if XDiff < 0:
-					Angle = 0
-				else:
-					Angle = 180
-				XSpeed = ballSpeed * math.cos(math.radians(Angle))
-				YSpeed = ballSpeed * math.sin(math.radians(Angle))
-			x_v = XSpeed * bounceCoefficientNet
-			y_v = YSpeed * bounceCoefficientNet
+		if ballContactsCircle(x, y, ballRadius, winWidth / 2, winHeight - netHeight + (netWidth / 2), netWidth / 2) == True:
+			(x_v, y_v) = getBallCircleVelocityVector(x, y, x_v, y_v, winWidth / 2, winHeight - netHeight + (netWidth / 2), 0, 0, bounceCoefficientNet, 1, 1)
 
 		# Ball contacts side of net
 		elif y > winHeight - netHeight + netWidth:
@@ -323,77 +208,11 @@ def playGame():
 		elif p2_x - playerRadius < winWidth / 2 + netWidth / 2:
 			p2_x = winWidth / 2 + netWidth / 2 + playerRadius
 		
-		# Calculate Player1 pupil position
-		XDiff = -(x - (p1_x + playerRadius * 0.4))
-		YDiff = -(y - (p1_y - playerRadius / 2))
-		if XDiff > 0:
-			if YDiff > 0:
-				Angle = math.degrees(math.atan(YDiff / XDiff))
-				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-			elif YDiff < 0:
-				Angle = math.degrees(math.atan(YDiff / XDiff))
-				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-		elif XDiff < 0:
-			if YDiff > 0:
-				Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
-				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-			elif YDiff < 0:
-				Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
-				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-		elif XDiff == 0:
-			if YDiff > 0:
-				Angle = -90
-			else:
-				Angle = 90
-				p1_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
-				p1_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
-		elif YDiff == 0:
-			if XDiff < 0:
-				Angle = 0
-			else:
-				Angle = 180
-				p1_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
-				p1_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
+		# Calculate Player1 pupil shift
+		(p1_pupilShiftX, p1_pupilShiftY) = getPlayerPupilShift(x, y, p1_x, p1_y, playerRadius, pupilFactor)
 
-		# Calculate Player2 pupil position
-		XDiff = -(x - (p2_x + playerRadius * 0.4))
-		YDiff = -(y - (p2_y - playerRadius / 2))
-		if XDiff > 0:
-			if YDiff > 0:
-				Angle = math.degrees(math.atan(YDiff / XDiff))
-				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-			elif YDiff < 0:
-				Angle = math.degrees(math.atan(YDiff / XDiff))
-				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-		elif XDiff < 0:
-			if YDiff > 0:
-				Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
-				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-			elif YDiff < 0:
-				Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
-				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
-				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
-		elif XDiff == 0:
-			if YDiff > 0:
-				Angle = -90
-			else:
-				Angle = 90
-				p2_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
-				p2_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
-		elif YDiff == 0:
-			if XDiff < 0:
-				Angle = 0
-			else:
-				Angle = 180
-				p2_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
-				p2_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
+		# Calculate Player2 pupil shift
+		(p2_pupilShiftX, p2_pupilShiftY) = getPlayerPupilShift(x, y, p2_x, p2_y, playerRadius, pupilFactor)
 
 		# Control framerate
 		pygame.time.delay(frameTimeMS)
@@ -448,6 +267,89 @@ def playGame():
 
 	pygame.quit()
 
+def ballContactsCircle(x, y, ballRadius, c_x, c_y, circleRadius):
+	if math.sqrt( ((x - c_x) ** 2) + ((y - c_y) ** 2) ) <= (ballRadius + circleRadius):
+		return True
+	return False
+
+def getBallCircleVelocityVector(x, y, x_v, y_v, c_x, c_y, c_xv, c_yv, bounceCoefficient, playerToBallMomentumTransfer, playerToBallHorizontalBoost):
+	ballSpeed = math.sqrt((x_v ** 2) + (y_v ** 2))
+	XDiff = -(x - c_x)
+	YDiff = -(y - c_y)
+	if XDiff > 0:
+		if YDiff > 0:
+			Angle = math.degrees(math.atan(YDiff / XDiff))
+			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
+			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
+		elif YDiff < 0:
+			Angle = math.degrees(math.atan(YDiff / XDiff))
+			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
+			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
+	elif XDiff < 0:
+		if YDiff > 0:
+			Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
+			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
+			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
+		elif YDiff < 0:
+			Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
+			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
+			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
+	elif XDiff == 0:
+		if YDiff > 0:
+			Angle = -90
+		else:
+			Angle = 90
+		XSpeed = ballSpeed * math.cos(math.radians(Angle))
+		YSpeed = ballSpeed * math.sin(math.radians(Angle))
+	elif YDiff == 0:
+		if XDiff < 0:
+			Angle = 0
+		else:
+			Angle = 180
+		XSpeed = ballSpeed * math.cos(math.radians(Angle))
+		YSpeed = ballSpeed * math.sin(math.radians(Angle))
+	x_v = (XSpeed + (c_xv * playerToBallMomentumTransfer)) * bounceCoefficient  * playerToBallHorizontalBoost
+	y_v = (YSpeed + (c_yv * playerToBallMomentumTransfer)) * bounceCoefficient
+	return (x_v, y_v)
+
+def getPlayerPupilShift(x, y, p_x, p_y, playerRadius, pupilFactor):
+	(pupilShiftX, pupilShiftY) = (0, 0)
+	XDiff = -(x - (p_x + playerRadius * 0.4))
+	YDiff = -(y - (p_y - playerRadius / 2))
+	if XDiff > 0:
+		if YDiff > 0:
+			Angle = math.degrees(math.atan(YDiff / XDiff))
+			pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+			pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+		elif YDiff < 0:
+			Angle = math.degrees(math.atan(YDiff / XDiff))
+			pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+			pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+	elif XDiff < 0:
+		if YDiff > 0:
+			Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
+			pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+			pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+		elif YDiff < 0:
+			Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
+			pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+			pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+	elif XDiff == 0:
+		if YDiff > 0:
+			Angle = -90
+		else:
+			Angle = 90
+			pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
+			pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
+	elif YDiff == 0:
+		if XDiff < 0:
+			Angle = 0
+		else:
+			Angle = 180
+			pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
+			pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
+	return (pupilShiftX, pupilShiftY)
+
 # The loser of the point must be shamed. This function makes that happen.
 def getInsultMessage(loser, insultsUsedAlready):
 	insults =	[	" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his family.",
@@ -457,6 +359,7 @@ def getInsultMessage(loser, insultsUsedAlready):
 					".isScrub() == True", " just managed to look like a complete idiot.", " is trash. Plain and simple.",
 					", the suckage is real."
 				]
+
 	if len(insultsUsedAlready) >= len(insults):
 		insultsUsedAlready.clear()
 
@@ -470,5 +373,6 @@ def getInsultMessage(loser, insultsUsedAlready):
 def drawAACircle(gameWin, x, y, r, color):
 	pygame.gfxdraw.aacircle(gameWin, x, y, r, color)
 	pygame.gfxdraw.filled_circle(gameWin, x, y, r, color)
-	
+
+pygame.init()
 playGame()
