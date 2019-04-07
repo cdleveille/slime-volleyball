@@ -3,6 +3,166 @@ from pygame import gfxdraw
 import math
 import random
 
+class GameObject:
+
+	# Create a new GameObject (parent class of Player and Ball)
+	def __init__(self, x, y, color):
+		self.x = x
+		self.y = y
+		self.xv = 0
+		self.yv = 0
+		self.color = color
+
+	# Update position properties based on a given gravity value
+	def updatePosition(self, gravity):
+		self.yv += gravity
+		self.x += self.xv
+		self.y += self.yv
+
+class Player(GameObject):
+	radius = 50
+	speed = 5
+	jump = 5
+	pupilOffsetRatio = radius / 14
+
+	# Create a new Player
+	def __init__(self, x, y, name, color, inputs):
+		self.name = name
+		self.inputs = inputs
+		self.jumpEnabled = True
+		self.startX = x
+		self.startY = y
+		super(Player, self).__init__(x, y, color)
+
+	# Update movement properties based on the keys currently being pressed
+	def getInput(self, keys):
+		jump = self.inputs[0]
+		left = self.inputs[1]
+		right = self.inputs[2]
+		if keys[left] and keys[right]:
+			self.xv = 0
+		elif keys[left]:
+			self.xv = -Player.speed
+		elif keys[right]:
+			self.xv = Player.speed
+		else:
+			self.xv = 0
+		if (self.jumpEnabled == True):
+			if keys[jump]:
+				self.yv = -Player.jump
+				self.jumpEnabled = False
+
+	def draw(self, gameWin, backgroundColor):
+		drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
+		drawAACircle(gameWin, int(self.x + self.radius * 0.4), int(self.y - self.radius / 2), int(self.radius / 5), pygame.color.Color("lightgray"))
+		drawAACircle(gameWin, int(self.x + self.radius * 0.4), int(self.y - self.radius / 2), int(self.radius / 8), pygame.color.Color("black"))
+		pygame.draw.rect(gameWin, backgroundColor, (self.x - self.radius, self.y, self.radius * 2 + 1, self.radius + 1))
+
+class Ball(GameObject):
+	radius = 25
+
+	# Create a new Ball
+	def __init__(self, x, y, color):
+		super(Ball, self).__init__(x, y, color)
+
+	# Draw the Ball
+	def draw(self, gameWin):
+		drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
+
+class Game:
+
+	# Create a new Game
+	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientNet, 
+					playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, team1, team2, ball):
+		self.gameWin = pygame.display.set_mode((winWidth, winHeight))
+		self.backgroundColor = backgroundColor
+		self.backgroundImage = backgroundImage
+		self.frameTimeMS = frameTimeMS
+		self.gravity = gravity
+		self.bounceCoefficient = bounceCoefficient
+		self.bounceCoefficientNet = bounceCoefficientNet
+		self.playerToBallMomentumTransfer = playerToBallMomentumTransfer
+		self.playerToBallHorizontalBoost = playerToBallHorizontalBoost
+		self.netHeight = netHeight
+		self.netWidth = netWidth
+		self.team1 = team1
+		self.team2 = team2
+		self.ball = ball
+
+	def startGame(self):
+		self.gameLoop()
+
+	def gameLoop(self):
+		gameOn = True
+		newPoint = True
+		frameCount = 0
+
+		while (gameOn == True):
+
+			# Quit game if window is closed
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					gameOn = False
+
+			if newPoint == True:
+				self.resetGameObjectPositions()
+				newPoint = False
+
+			# Get input from players
+			keys = pygame.key.get_pressed()
+			for player in self.team1 + self.team2:
+				player.getInput(keys)
+
+			# Restrict player movement
+
+
+			# Update position of game objects
+			for obj in self.team1 + self.team2 + [self.ball]:
+				obj.updatePosition(self.gravity)
+
+			# Draw the frame
+			self.draw()
+			frameCount += 1
+
+
+	def resetGameObjectPositions(self):
+		players = self.team1 + self.team2
+		for i, player in enumerate(players):
+			players[i].x = players[i].startX
+			players[i].y = players[i].startY
+
+	def draw(self):
+		# Control framerate
+		pygame.time.delay(self.frameTimeMS)
+
+		# Fill window with background color
+		self.gameWin.fill(self.backgroundColor)
+
+		# Draw players
+		for p in self.team1 + self.team2:
+			p.draw(self.gameWin, self.backgroundColor)
+
+		# Draw ball
+		self.ball.draw(self.gameWin)
+
+		# Refresh the window
+		pygame.display.update()
+
+
+def test():
+
+	winWidth = 1000
+	winHeight = 500
+
+	b = Ball(50, 50, pygame.color.Color("darkgreen"))
+	p1 = Player(winWidth / 4, winHeight, "P1", pygame.color.Color("darkblue"), [pygame.K_w, pygame.K_a, pygame.K_d])
+	p2 = Player(winWidth * (3 / 4), winHeight, "P2", pygame.color.Color("darkred"), [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT])
+
+	#def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientNet, 
+					#playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, team1, team2, ball):
+	g = Game(winWidth, winHeight, pygame.color.Color("lightblue"), "no image", 7, 0.1, 0.98, 0.75, 0.12, 1.03, 100, 20, [p1], [p2], b)
+	g.startGame()
+
 # Main game function
 def playGame():
 	## Initialize properties of game objects
@@ -375,4 +535,5 @@ def drawAACircle(gameWin, x, y, r, color):
 	pygame.gfxdraw.filled_circle(gameWin, x, y, r, color)
 
 pygame.init()
+#test()
 playGame()
