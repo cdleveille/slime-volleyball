@@ -1,3 +1,6 @@
+## Chris Leveille
+## April 2019
+
 import pygame
 from pygame import gfxdraw
 import math
@@ -6,9 +9,9 @@ import random
 class GameObject:
 
 	# Create a new GameObject (parent class of Player and Ball)
-	def __init__(self, x, y, color):
-		self.x = x
-		self.y = y
+	def __init__(self, color):
+		self.x = 0
+		self.y = 0
 		self.xv = 0
 		self.yv = 0
 		self.color = color
@@ -26,19 +29,18 @@ class Player(GameObject):
 	pupilOffsetRatio = radius / 14
 
 	# Create a new Player
-	def __init__(self, x, y, name, color, inputs):
+	def __init__(self, name, color, inputs):
 		self.name = name
 		self.inputs = inputs
 		self.jumpEnabled = True
-		self.startX = x
-		self.startY = y
-		super(Player, self).__init__(x, y, color)
+		super(Player, self).__init__(color)
 
 	# Update movement properties based on the keys currently being pressed
 	def getInput(self, keys):
 		jump = self.inputs[0]
 		left = self.inputs[1]
 		right = self.inputs[2]
+
 		if keys[left] and keys[right]:
 			self.xv = 0
 		elif keys[left]:
@@ -62,8 +64,8 @@ class Ball(GameObject):
 	radius = 25
 
 	# Create a new Ball
-	def __init__(self, x, y, color):
-		super(Ball, self).__init__(x, y, color)
+	def __init__(self, color):
+		super(Ball, self).__init__(color)
 
 	# Draw the Ball
 	def draw(self, gameWin):
@@ -73,7 +75,9 @@ class Game:
 
 	# Create a new Game
 	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientNet, 
-					playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, team1, team2, ball):
+					playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, netColor, team1, team2, ball):
+		self.winWidth = winWidth
+		self.winHeight = winHeight
 		self.gameWin = pygame.display.set_mode((winWidth, winHeight))
 		self.backgroundColor = backgroundColor
 		self.backgroundImage = backgroundImage
@@ -85,6 +89,7 @@ class Game:
 		self.playerToBallHorizontalBoost = playerToBallHorizontalBoost
 		self.netHeight = netHeight
 		self.netWidth = netWidth
+		self.netColor = netColor
 		self.team1 = team1
 		self.team2 = team2
 		self.ball = ball
@@ -109,27 +114,80 @@ class Game:
 				newPoint = False
 
 			# Get input from players
-			keys = pygame.key.get_pressed()
-			for player in self.team1 + self.team2:
-				player.getInput(keys)
+			self.getInputFromPlayers()
 
-			# Restrict player movement
-
+			# Handle collisions
+			self.handleCollisions()
 
 			# Update position of game objects
 			for obj in self.team1 + self.team2 + [self.ball]:
 				obj.updatePosition(self.gravity)
 
+			# Handle player movement
+			self.handlePlayerMovement()
+
 			# Draw the frame
 			self.draw()
 			frameCount += 1
 
-
 	def resetGameObjectPositions(self):
-		players = self.team1 + self.team2
-		for i, player in enumerate(players):
-			players[i].x = players[i].startX
-			players[i].y = players[i].startY
+		for i, player in enumerate(self.team1):
+			self.team1[i].x = ((self.winWidth / 2) / (len(self.team1) + 1)) * (i + 1)
+			self.team1[i].y = self.winHeight
+
+		for i, player in enumerate(self.team2):
+			self.team2[i].x = (((self.winWidth / 2) / (len(self.team2) + 1)) * (i + 1)) + (self.winWidth / 2)
+			self.team2[i].y = self.winHeight
+
+	def getInputFromPlayers(self):
+		keys = pygame.key.get_pressed()
+		for player in self.team1 + self.team2:
+			player.getInput(keys)
+
+	def handlePlayerMovement(self):
+		for i, player in enumerate(self.team1):
+			if player.x - player.radius < 1:
+				self.team1[i].x = player.radius
+			elif player.x + player.radius > self.winWidth / 2 - self.netWidth / 2 - 1:
+				self.team1[i].x = self.winWidth / 2 - self.netWidth / 2 - player.radius - 1
+			if player.y > self.winHeight:
+				self.team1[i].y = self.winHeight
+				self.team1[i].jumpEnabled = True
+
+		for i, player in enumerate(self.team2):
+			if player.x - player.radius < self.winWidth / 2 + self.netWidth / 2 + 1:
+				self.team2[i].x = self.winWidth / 2 + self.netWidth / 2 + player.radius + 1
+			elif player.x + player.radius > self.winWidth:
+				self.team2[i].x = self.winWidth - player.radius
+			if player.y > self.winHeight:
+				self.team2[i].y = self.winHeight
+				self.team2[i].jumpEnabled = True
+		
+
+	def handleCollisions(self):
+		# Ball contacts floor
+		if self.ball.y > self.winHeight - self.ball.radius:
+			self.ball.y = self.winHeight - self.ball.radius
+			self.ball.yv = -self.ball.yv * self.bounceCoefficient
+
+		# Ball contacts wall
+		if self.ball.x - self.ball.radius < 1:
+			self.ball.x = self.ball.radius
+			self.ball.xv = -self.ball.xv * self.bounceCoefficient
+		elif self.ball.x + self.ball.radius > self.winWidth:
+			self.ball.x = self.winWidth - self.ball.radius
+			self.ball.xv = -self.ball.xv * self.bounceCoefficient
+
+		# Ball contacts player
+		for player in self.team1 + self.team2:
+			if ballContactsCircle(self.ball.x, self.ball.y, self.ball.radius, player.x, player.y, player.radius) == True:
+				(self.ball.xv, self.ball.yv) = getBallCircleVelocityVector(self.ball.x, self.ball.y, self.ball.xv, self.ball.yv, player.x, 
+					player.y, player.xv, player.yv, self.bounceCoefficient, self.playerToBallMomentumTransfer, self.playerToBallHorizontalBoost)
+
+		# Ball contacts net
+		if ballContactsCircle(self.ball.x, self.ball.y, self.ball.radius, self.winWidth /2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
+				(self.ball.xv, self.ball.yv) = getBallCircleVelocityVector(self.ball.x, self.ball.y, self.ball.xv, self.ball.yv, self.winWidth / 2, 
+					self.winHeight - self.netHeight + (self.netWidth / 2), 0, 0, self.bounceCoefficientNet, 0, 1)
 
 	def draw(self):
 		# Control framerate
@@ -137,6 +195,10 @@ class Game:
 
 		# Fill window with background color
 		self.gameWin.fill(self.backgroundColor)
+
+		# Draw net
+		pygame.draw.rect(self.gameWin, self.netColor, (self.winWidth / 2 - (self.netWidth / 2), self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth + 1, self.netHeight))
+		drawAACircle(self.gameWin, int(self.winWidth / 2), int(self.winHeight - self.netHeight + (self.netWidth / 2)), int(self.netWidth / 2), self.netColor)
 
 		# Draw players
 		for p in self.team1 + self.team2:
@@ -154,13 +216,14 @@ def test():
 	winWidth = 1000
 	winHeight = 500
 
-	b = Ball(50, 50, pygame.color.Color("darkgreen"))
-	p1 = Player(winWidth / 4, winHeight, "P1", pygame.color.Color("darkblue"), [pygame.K_w, pygame.K_a, pygame.K_d])
-	p2 = Player(winWidth * (3 / 4), winHeight, "P2", pygame.color.Color("darkred"), [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT])
+	b = Ball(pygame.color.Color("darkgreen"))
+	p1 = Player("P1", pygame.color.Color("darkblue"), [pygame.K_w, pygame.K_a, pygame.K_d])
+	p2 = Player("P2", pygame.color.Color("darkred"), [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT])
 
 	#def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientNet, 
 					#playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, team1, team2, ball):
-	g = Game(winWidth, winHeight, pygame.color.Color("lightblue"), "no image", 7, 0.1, 0.98, 0.75, 0.12, 1.03, 100, 20, [p1], [p2], b)
+	g = Game(winWidth, winHeight, pygame.color.Color("lightblue"), None, 7, 0.1, 0.98, 0.75, 
+		0.12, 1.03, 100, 20, pygame.color.Color("black"), [p1], [p2], b)
 	g.startGame()
 
 # Main game function
@@ -531,8 +594,8 @@ def getInsultMessage(loser, insultsUsedAlready):
 
 # Draw a circle with smooth edges using anti-aliasing
 def drawAACircle(gameWin, x, y, r, color):
-	pygame.gfxdraw.aacircle(gameWin, x, y, r, color)
-	pygame.gfxdraw.filled_circle(gameWin, x, y, r, color)
+	pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), color)
+	pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 
 pygame.init()
 #test()
