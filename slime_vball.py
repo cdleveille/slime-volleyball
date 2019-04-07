@@ -22,7 +22,7 @@ def playGame():
 	frameTimeMS = 7
 	gravity = 0.1
 	bounceCoefficient = 0.98
-	bounceCoefficientNet = 0.75
+	bounceCoefficientNet = 0.75 
 	playerToBallMomentumTransfer = 0.12
 	playerToBallHorizontalBoost = 1.03
 
@@ -35,6 +35,7 @@ def playGame():
 	playerSpeed = 5.5
 	playerJump = 5
 	playerRadius = 50
+	pupilFactor = playerRadius / 14
 	ballRadius = 25
 	netWidth = 20
 	netHeight = 100
@@ -321,6 +322,78 @@ def playGame():
 			p2_x = winWidth - playerRadius
 		elif p2_x - playerRadius < winWidth / 2 + netWidth / 2:
 			p2_x = winWidth / 2 + netWidth / 2 + playerRadius
+		
+		# Calculate Player1 pupil position
+		XDiff = -(x - (p1_x + playerRadius * 0.4))
+		YDiff = -(y - (p1_y - playerRadius / 2))
+		if XDiff > 0:
+			if YDiff > 0:
+				Angle = math.degrees(math.atan(YDiff / XDiff))
+				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+			elif YDiff < 0:
+				Angle = math.degrees(math.atan(YDiff / XDiff))
+				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+		elif XDiff < 0:
+			if YDiff > 0:
+				Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
+				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+			elif YDiff < 0:
+				Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
+				p1_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p1_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+		elif XDiff == 0:
+			if YDiff > 0:
+				Angle = -90
+			else:
+				Angle = 90
+				p1_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
+				p1_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
+		elif YDiff == 0:
+			if XDiff < 0:
+				Angle = 0
+			else:
+				Angle = 180
+				p1_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
+				p1_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
+
+		# Calculate Player2 pupil position
+		XDiff = -(x - (p2_x + playerRadius * 0.4))
+		YDiff = -(y - (p2_y - playerRadius / 2))
+		if XDiff > 0:
+			if YDiff > 0:
+				Angle = math.degrees(math.atan(YDiff / XDiff))
+				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+			elif YDiff < 0:
+				Angle = math.degrees(math.atan(YDiff / XDiff))
+				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+		elif XDiff < 0:
+			if YDiff > 0:
+				Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
+				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+			elif YDiff < 0:
+				Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
+				p2_pupilShiftX = -pupilFactor * math.cos(math.radians(Angle))
+				p2_pupilShiftY = -pupilFactor * math.sin(math.radians(Angle))
+		elif XDiff == 0:
+			if YDiff > 0:
+				Angle = -90
+			else:
+				Angle = 90
+				p2_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
+				p2_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
+		elif YDiff == 0:
+			if XDiff < 0:
+				Angle = 0
+			else:
+				Angle = 180
+				p2_pupilShiftX = pupilFactor * math.cos(math.radians(Angle))
+				p2_pupilShiftY = pupilFactor * math.sin(math.radians(Angle))
 
 		# Control framerate
 		pygame.time.delay(frameTimeMS)
@@ -331,12 +404,12 @@ def playGame():
 		# Draw Player1
 		drawAACircle(gameWin, int(p1_x), int(p1_y), playerRadius, p1Color)
 		drawAACircle(gameWin, int(p1_x + playerRadius * 0.4), int(p1_y - playerRadius / 2), int(playerRadius / 5), pygame.color.Color("lightgray"))
-		drawAACircle(gameWin, int(p1_x + playerRadius * 0.45), int(p1_y - playerRadius / 2), int(playerRadius / 9), pygame.color.Color("black"))
+		drawAACircle(gameWin, int(p1_x + playerRadius * 0.4 + p1_pupilShiftX), int(p1_y - playerRadius / 2 + p1_pupilShiftY), int(playerRadius / 8), pygame.color.Color("black"))
 		pygame.draw.rect(gameWin, backgroundColor, (p1_x - playerRadius, p1_y, playerRadius * 2 + 1, playerRadius + 1))
 		# Draw Player2
 		drawAACircle(gameWin, int(p2_x), int(p2_y), playerRadius, p2Color)
 		drawAACircle(gameWin, int(p2_x - playerRadius * 0.4), int(p2_y - playerRadius / 2), int(playerRadius / 5), pygame.color.Color("lightgray"))
-		drawAACircle(gameWin, int(p2_x - playerRadius * 0.45), int(p2_y - playerRadius / 2), int(playerRadius / 9), pygame.color.Color("black"))
+		drawAACircle(gameWin, int(p2_x - playerRadius * 0.4 + p2_pupilShiftX), int(p2_y - playerRadius / 2 + p2_pupilShiftY), int(playerRadius / 8), pygame.color.Color("black"))
 		pygame.draw.rect(gameWin, backgroundColor, (p2_x - playerRadius, p2_y, playerRadius * 2 + 1, playerRadius + 1))
 		# Draw Player1 score
 		p1ScoreLabel = scoreFont.render(str(p1Score), True, p1Color)
@@ -348,7 +421,7 @@ def playGame():
 		messageLabel = messageFont.render(message, True, messageColor)
 		messageLabelRect = messageLabel.get_rect(center = (winWidth / 2, 20))
 		gameWin.blit(messageLabel, messageLabelRect)
-		# Draw detail message
+		# Draw insult message
 		insultMessageLabel = insultMessageFont.render(insultMessage, True, messageColor)
 		insultMessageLabelRect = insultMessageLabel.get_rect(center = (winWidth / 2, 50))
 		gameWin.blit(insultMessageLabel, insultMessageLabelRect)
@@ -359,13 +432,13 @@ def playGame():
 		drawAACircle(gameWin, int(x), int(y), ballRadius, ballColor)
 		# If ball is off-screen, draw a dot indicating its horizontal location
 		# The size of the dot indicates the height of the ball
-		if y - ballRadius < -450:
+		if y - ballRadius < -440:
 			drawAACircle(gameWin, int(x), 10, 4, ballColor)
-		elif y - ballRadius < -350:
+		elif y - ballRadius < -340:
 			drawAACircle(gameWin, int(x), 10, 5, ballColor)
-		elif y - ballRadius < -250:
+		elif y - ballRadius < -240:
 			drawAACircle(gameWin, int(x), 10, 6, ballColor)
-		elif y - ballRadius < -150:
+		elif y - ballRadius < -140:
 			drawAACircle(gameWin, int(x), 10, 7, ballColor)
 		elif y - ballRadius < -40:
 			drawAACircle(gameWin, int(x), 10, 8, ballColor)
@@ -378,9 +451,9 @@ def playGame():
 # The loser of the point must be shamed. This function makes that happen.
 def getInsultMessage(loser, insultsUsedAlready):
 	insults =	[	" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his family.",
-					", do you like apples?", ", u mad bro?", " seems rattled.", " continues to suck some serious ass.",
+					", how do you like them apples?", ", u mad bro?", " seems rattled.", " continues to suck some serious ass.",
 					", wow, not even close.", ", I'm not mad, I'm just disappointed. In you. For that.",
-					" looks like a little bitch.", " is simply an embarassment.", " just found a whole new meaning for the word 'suck'.",
+					" is playing like a little bitch.", " is simply an embarassment.", " just found a whole new meaning for the word 'suck'.",
 					".isScrub() == True", " just managed to look like a complete idiot.", " is trash. Plain and simple.",
 					", the suckage is real."
 				]
