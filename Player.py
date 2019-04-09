@@ -3,12 +3,11 @@
 
 import pygame
 import math
-from pygame import gfxdraw
 
 class Player():
 
 	# Create a new player
-	def __init__(self, name, radius, speed, jump, color, inputs):
+	def __init__(self, name, radius, speed, jump, color, inputs, message):
 		self.x = 0
 		self.y = 0
 		self.xv = 0
@@ -21,9 +20,11 @@ class Player():
 		self.inputs = inputs
 		self.jumpEnabled = True
 		self.pupilOffsetRatio = self.radius / 14
+		self.message = message
+		self.messageFont = pygame.font.Font(None, 24)
 
 	# Update movement properties based on the keys currently being pressed
-	def getInput(self, keys):
+	def handleInput(self, keys):
 		jump = self.inputs[0]
 		left = self.inputs[1]
 		right = self.inputs[2]
@@ -86,28 +87,52 @@ class Player():
 		self.y += self.yv
 
 	def draw(self, gameWin, backgroundColor, ball):
+		self.drawBody(gameWin, backgroundColor)
+		self.drawEye(gameWin, ball)
+		self.drawMessage(gameWin)
+
+	def drawBody(self, gameWin, backgroundColor):
 		self.drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
+		pygame.draw.rect(gameWin, backgroundColor, (self.x - self.radius, self.y, self.radius * 2 + 1, self.radius + 1))
+		pygame.gfxdraw.line(gameWin, int(self.x - self.radius), int(self.y), int(self.x + self.radius), int(self.y), pygame.color.Color("black"))
 
-		if (ball.y + ball.radius < pygame.display.get_surface().get_height()):
-			eyeRadius = self.radius / 5
+	def drawEye(self, gameWin, ball):
+		# If the ball contacts the ground on this player's side, widen the white of his eye
+		if ball.y + ball.radius >= pygame.display.get_surface().get_height():
+			if self.x < pygame.display.get_surface().get_width() / 2 and ball.x < pygame.display.get_surface().get_width() / 2:
+				eyeRadius = self.radius / 3.8
+			elif self.x > pygame.display.get_surface().get_width() / 2 and ball.x > pygame.display.get_surface().get_width() / 2:
+				eyeRadius = self.radius / 3.8
+			else:
+				eyeRadius = self.radius / 5
 		else:
-			eyeRadius = self.radius / 3.8
+			eyeRadius = self.radius / 5
 
+		if (self.x < pygame.display.get_surface().get_width() / 2):
+			self.drawAACircle(gameWin, int(self.x + self.radius * 0.4), int(self.y - self.radius / 2), int(eyeRadius), pygame.color.Color("lightgray"))
+		else:
+			self.drawAACircle(gameWin, int(self.x - self.radius * 0.4), int(self.y - self.radius / 2), int(eyeRadius), pygame.color.Color("lightgray"))
+		
+		self.drawPupil(gameWin, ball)
+
+	def drawPupil(self, gameWin, ball):
+		# Draw the pupil so it is tracking the ball's location
 		if self.x < pygame.display.get_surface().get_width() / 2:
 			(pupilOffsetX, pupilOffsetY) = self.getPupilOffset(ball, self.radius * 0.4)
 		else:
 			(pupilOffsetX, pupilOffsetY) = self.getPupilOffset(ball, -self.radius * 0.4)
 
 		if (self.x < pygame.display.get_surface().get_width() / 2):
-			self.drawAACircle(gameWin, int(self.x + self.radius * 0.4), int(self.y - self.radius / 2), int(eyeRadius), pygame.color.Color("lightgray"))
 			self.drawAACircle(gameWin, int(self.x + self.radius * 0.4 + pupilOffsetX), int(self.y - self.radius / 2 + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
 		else:
-			self.drawAACircle(gameWin, int(self.x - self.radius * 0.4), int(self.y - self.radius / 2), int(eyeRadius), pygame.color.Color("lightgray"))
 			self.drawAACircle(gameWin, int(self.x - self.radius * 0.4 + pupilOffsetX), int(self.y - self.radius / 2 + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
 
-		pygame.draw.rect(gameWin, backgroundColor, (self.x - self.radius, self.y, self.radius * 2 + 1, self.radius + 1))
+	def drawMessage(self, gameWin):
+		messageLabel = self.messageFont.render(self.message, True, pygame.color.Color("black"))
+		messageLabelRect = messageLabel.get_rect(center = (self.x, self.y - self.radius - 20))
+		gameWin.blit(messageLabel, messageLabelRect)
 
 	# Draw a circle with smooth edges using anti-aliasing
 	def drawAACircle(self, gameWin, x, y, r, color):
-		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), color)
 		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
+		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), pygame.color.Color("black"))

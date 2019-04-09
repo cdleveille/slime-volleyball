@@ -2,10 +2,9 @@
 ## April 2019
 
 import pygame
-from pygame import gfxdraw
 import math
 import random
-
+from pygame import gfxdraw
 from Player import Player
 from Ball import Ball
 
@@ -44,13 +43,18 @@ class Game:
 		self.subMessage = "May the slimiest Slime win."
 		self.frameCount = 0
 
-		self.resetGameObjectPositions()
+		rng = bool(random.getrandbits(1))
+		if rng == True:
+			self.teamToServe = self.team1
+		else:
+			self.teamToServe = self.team2
+
+		self.resetPositions()
 		self.gameLoop()
 
 	def gameLoop(self):
 		gameOn = True
-		messageTimeoutSec = 3
-		messageTimeoutFrameCount = (1000 / self.frameTimeMS) * messageTimeoutSec
+		messageTimeoutFrameCount = (1000 / self.frameTimeMS) * 3
 
 		while (gameOn == True):
 
@@ -59,10 +63,13 @@ class Game:
 				if event.type == pygame.QUIT:
 					gameOn = False
 
-			# Hide the game messages after 
+			# Hide the game messages after 3 sec
 			if self.frameCount >= messageTimeoutFrameCount:
 				self.message = ""
 				self.subMessage = ""
+				players = self.team1 + self.team2
+				for i, player in enumerate(players):
+					players[i].message = ""
 
 			self.getInputFromPlayers()
 
@@ -77,7 +84,8 @@ class Game:
 			if self.frameCount < messageTimeoutFrameCount:
 				self.frameCount += 1
 
-	def resetGameObjectPositions(self):
+	# Return each game object to its original position
+	def resetPositions(self):
 		for i, player in enumerate(self.team1):
 			self.team1[i].x = ((self.winWidth / 2) / (len(self.team1) + 1)) * (i + 1)
 			self.team1[i].y = self.winHeight
@@ -86,8 +94,8 @@ class Game:
 			self.team2[i].x = (((self.winWidth / 2) / (len(self.team2) + 1)) * (i + 1)) + (self.winWidth / 2)
 			self.team2[i].y = self.winHeight
 
-		index = random.randint(0, len(self.team1 + self.team2) - 1)
-		for i, player in enumerate(self.team1 + self.team2):
+		index = random.randint(0, len(self.teamToServe) - 1)
+		for i, player in enumerate(self.teamToServe):
 			if i == index:
 				self.ball.x = player.x
 		self.ball.y = self.winHeight * (1 / 3)
@@ -97,9 +105,9 @@ class Game:
 	def getInputFromPlayers(self):
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_r]:
-			self.resetGameObjectPositions()
+			self.resetPositions()
 		for player in self.team1 + self.team2:
-			player.getInput(keys)
+			player.handleInput(keys)
 
 	def updatePositionOfGameObjects(self):
 		for player in self.team1 + self.team2:
@@ -122,8 +130,8 @@ class Game:
 		for i, player in enumerate(self.team2):
 			if player.x - player.radius < self.winWidth / 2 + self.netWidth / 2 + 1:
 				self.team2[i].x = self.winWidth / 2 + self.netWidth / 2 + player.radius + 1
-			elif player.x + player.radius > self.winWidth:
-				self.team2[i].x = self.winWidth - player.radius
+			elif player.x + player.radius > self.winWidth - 1:
+				self.team2[i].x = self.winWidth - player.radius - 1
 			if player.y > self.winHeight:
 				self.team2[i].y = self.winHeight
 				self.team2[i].jumpEnabled = True
@@ -134,15 +142,17 @@ class Game:
 			self.ball.y = self.winHeight - self.ball.radius
 			self.ball.yv = -self.ball.yv * self.bounceCoefficient
 			if self.ball.x > self.winWidth / 2:
+				self.teamToServe = self.team1
 				self.team1Score += 1
 				self.message = self.getTeamScoreMessage(self.team1)
 			else:
+				self.teamToServe = self.team2
 				self.team2Score += 1
 				self.message = self.getTeamScoreMessage(self.team2)
 
 			self.draw()
 			pygame.time.delay(500)
-			self.resetGameObjectPositions()
+			self.resetPositions()
 			self.frameCount = 0
 
 		# Ball contacts wall
@@ -160,10 +170,6 @@ class Game:
 					player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallMomentumTransfer, self.playerToBallHorizontalBoost)
 				break
 
-				#if player.y >= self.winHeight and self.ball.yv > 0:
-					#self.ball.yv = 0
-					#(self.ball.x, self.ball.y) = self.getPositionBallContactsCircle(player.x, player.y, self.ball.radius + player.radius)
-
 		# Ball contacts net
 		if ballContactsCircle(self.ball.x, self.ball.y, self.ball.radius, self.winWidth /2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
 				(self.ball.xv, self.ball.yv) = getBallCircleVelocityVector(self.ball.x, self.ball.y, self.ball.xv, self.ball.yv, self.winWidth / 2, 
@@ -175,44 +181,6 @@ class Game:
 			elif abs((self.ball.x - self.ball.radius) - (self.winWidth / 2)) <= self.netWidth / 2:
 				self.ball.x = (self.winWidth / 2) + (self.netWidth / 2) + self.ball.radius
 				self.ball.xv = -self.ball.xv * self.bounceCoefficientNet
-
-	def getPositionBallContactsCircle(self, circleX, circleY, circleRadius):
-		(shiftX, shiftY) = (0, 0)
-		XDiff = -(self.ball.x - circleX)
-		YDiff = -(self.ball.y - circleY)
-		if XDiff > 0:
-			if YDiff > 0:
-				Angle = math.degrees(math.atan(YDiff / XDiff))
-				shiftX = -circleRadius * math.cos(math.radians(Angle))
-				shiftY = -circleRadius * math.sin(math.radians(Angle))
-			elif YDiff < 0:
-				Angle = math.degrees(math.atan(YDiff / XDiff))
-				shiftX = -circleRadius * math.cos(math.radians(Angle))
-				shiftY = -circleRadius * math.sin(math.radians(Angle))
-		elif XDiff < 0:
-			if YDiff > 0:
-				Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
-				shiftX = -circleRadius * math.cos(math.radians(Angle))
-				shiftY = -circleRadius * math.sin(math.radians(Angle))
-			elif YDiff < 0:
-				Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
-				shiftX = -circleRadius * math.cos(math.radians(Angle))
-				shiftY = -circleRadius * math.sin(math.radians(Angle))
-		elif XDiff == 0:
-			if YDiff > 0:
-				Angle = -90
-			else:
-				Angle = 90
-				shiftX = circleRadius * math.cos(math.radians(Angle))
-				shiftY = circleRadius * math.sin(math.radians(Angle))
-		elif YDiff == 0:
-			if XDiff < 0:
-				Angle = 0
-			else:
-				Angle = 180
-				shiftX = circleRadius * math.cos(math.radians(Angle))
-				shiftY = circleRadius * math.sin(math.radians(Angle))
-		return (self.ball.x + shiftX, self.ball.y + shiftY)
 
 	def draw(self):
 		# Control framerate
@@ -254,43 +222,6 @@ class Game:
 			return team[0].name + " Scores!"
 		else:
 			return "Team Scores!"
-
-def playGame():
-	winWidth = 1000
-	winHeight = 500
-	backgroundColor = pygame.color.Color("lightblue")
-	backgroundImage = None
-	frameTimeMS = 7
-	gravity = 0.10
-	bounceCoefficient = 0.98
-	bounceCoefficientPlayer = 0.98
-	bounceCoefficientNet = 0.75
-	playerToBallMomentumTransfer = 0.12
-	playerToBallHorizontalBoost = 1.03
-	netHeight = 100
-	netWidth = 20
-	netColor = pygame.color.Color("black")
-
-	playerSpeed = 5
-	playerJump = 5
-	playerRadius = 50
-	ballRadius = 25
-
-	if playerRadius == ballRadius * 2:
-		playerRadius += 1
-
-	p1 = Player("P1", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkblue"), [pygame.K_w, pygame.K_a, pygame.K_d])
-	p2 = Player("P2", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkred"), [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT])
-	p3 = Player("P3", playerRadius, playerSpeed, playerJump, pygame.color.Color("orange"), [pygame.K_t, pygame.K_f, pygame.K_h])
-	p4 = Player("P4", playerRadius, playerSpeed, playerJump, pygame.color.Color("yellow"), [pygame.K_i, pygame.K_j, pygame.K_l])
-	team1 = [p1]
-	team2 = [p2]
-
-	ball = Ball(ballRadius, pygame.color.Color("darkgreen"))
-
-	game = Game(winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
-				playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, netColor, team1, team2, ball)
-	game.startGame()
 
 def ballContactsCircle(x, y, ballRadius, c_x, c_y, circleRadius):
 	if math.sqrt( ((x - c_x) ** 2) + ((y - c_y) ** 2) ) <= (ballRadius + circleRadius):
@@ -360,6 +291,51 @@ def getInsultMessage(loser, insultsUsedAlready):
 def drawAACircle(gameWin, x, y, r, color):
 	pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), color)
 	pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
+
+def playGame():
+	winWidth = 1000
+	winHeight = 500
+	backgroundColor = pygame.color.Color("lightblue")
+	backgroundImage = None
+	frameTimeMS = 7
+	gravity = 0.1
+	bounceCoefficient = 0.98
+	bounceCoefficientPlayer = 0.98
+	bounceCoefficientNet = 0.75
+	playerToBallMomentumTransfer = 0.12
+	playerToBallHorizontalBoost = 1.03
+	netHeight = 100
+	netWidth = 20
+	netColor = pygame.color.Color("black")
+	fourPlayer = False
+
+	playerSpeed = 5
+	playerJump = 5
+	playerRadius = 50
+	ballRadius = 25
+
+	if playerRadius == ballRadius * 2:
+		playerRadius += 1
+
+	p1 = Player("Blue Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkblue"), [pygame.K_w, pygame.K_a, pygame.K_d], "[W, A, D]")
+	p2 = Player("Red Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkred"), [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT], "[UP, LEFT, RIGHT]")
+	p3 = Player("Purple Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("purple"), [pygame.K_t, pygame.K_f, pygame.K_h], "[T, F, H]")
+	p4 = Player("Orange Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("orange"), [pygame.K_i, pygame.K_j, pygame.K_l], "[I, J, L]")
+
+	# 1v1
+	team1 = [p1] # controls: [W, A, D]
+	team2 = [p2] # controls: [UP, LEFT, RIGHT]
+
+	# 2v2
+	if fourPlayer == True:
+		team1.append(p3) # controls: [T, F, H]
+		team2.append(p4) # controls: [I, J, L]
+
+	ball = Ball(ballRadius, pygame.color.Color("darkgreen"))
+
+	game = Game(winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
+				playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, netColor, team1, team2, ball)
+	game.startGame()
 
 pygame.init()
 playGame()
