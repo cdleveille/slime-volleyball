@@ -8,6 +8,7 @@ class Player():
 
 	# Create a new player
 	def __init__(self, name, radius, speed, jump, color, inputs, message):
+		
 		self.x = 0
 		self.y = 0
 		self.xv = 0
@@ -25,6 +26,7 @@ class Player():
 
 	# Update movement properties based on the keys currently being pressed
 	def handleInput(self, keys):
+		
 		jump = self.inputs[0]
 		left = self.inputs[1]
 		right = self.inputs[2]
@@ -43,6 +45,7 @@ class Player():
 				self.jumpEnabled = False
 
 	def getPupilOffset(self, ball, pupilX):
+		
 		(pupilShiftX, pupilShiftY) = (0, 0)
 		XDiff = -(ball.x - (self.x + pupilX))
 		YDiff = -(ball.y - (self.y - self.radius / 2))
@@ -82,21 +85,25 @@ class Player():
 
 	# Update position properties based on a given gravity value
 	def updatePosition(self, gravity):
+		
 		self.yv += gravity
 		self.x += self.xv
 		self.y += self.yv
 
 	def draw(self, gameWin, backgroundColor, ball):
+		
 		self.drawBody(gameWin, backgroundColor)
 		self.drawEye(gameWin, ball)
 		self.drawMessage(gameWin)
 
 	def drawBody(self, gameWin, backgroundColor):
+		
 		self.drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
 		pygame.draw.rect(gameWin, backgroundColor, (self.x - self.radius, self.y, self.radius * 2 + 1, self.radius + 1))
 		pygame.gfxdraw.line(gameWin, int(self.x - self.radius), int(self.y), int(self.x + self.radius), int(self.y), pygame.color.Color("black"))
 
 	def drawEye(self, gameWin, ball):
+		
 		# If the ball contacts the ground on this player's side, widen the white of his eye
 		if ball.y + ball.radius >= pygame.display.get_surface().get_height():
 			if self.x < pygame.display.get_surface().get_width() / 2 and ball.x < pygame.display.get_surface().get_width() / 2:
@@ -116,6 +123,7 @@ class Player():
 		self.drawPupil(gameWin, ball)
 
 	def drawPupil(self, gameWin, ball):
+		
 		# Draw the pupil so it is tracking the ball's location
 		if self.x < pygame.display.get_surface().get_width() / 2:
 			(pupilOffsetX, pupilOffsetY) = self.getPupilOffset(ball, self.radius * 0.4)
@@ -128,11 +136,13 @@ class Player():
 			self.drawAACircle(gameWin, int(self.x - self.radius * 0.4 + pupilOffsetX), int(self.y - self.radius / 2 + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
 
 	def drawMessage(self, gameWin):
+		
 		messageLabel = self.messageFont.render(self.message, True, pygame.color.Color("black"))
 		messageLabelRect = messageLabel.get_rect(center = (self.x, self.y - self.radius - 20))
 		gameWin.blit(messageLabel, messageLabelRect)
 
 	# Draw a circle with smooth edges using anti-aliasing
 	def drawAACircle(self, gameWin, x, y, r, color):
+		
 		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), pygame.color.Color("black"))

@@ -10,12 +10,12 @@ from Ball import Ball
 
 class Game:
 
-	# Create a new Game
+	# Create a new game
 	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
 					playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, netColor, team1, team2, ball):
+		
 		self.winWidth = winWidth
 		self.winHeight = winHeight
-		self.gameWin = pygame.display.set_mode((winWidth, winHeight))
 		self.backgroundColor = backgroundColor
 		self.backgroundImage = backgroundImage
 		self.frameTimeMS = frameTimeMS
@@ -32,7 +32,10 @@ class Game:
 		self.team2 = team2
 		self.ball = ball
 
+	# Start the game
 	def startGame(self):
+		
+		self.gameWin = pygame.display.set_mode((self.winWidth, self.winHeight))
 		self.team1Score = 0
 		self.team2Score = 0
 		self.scoreFont = scoreFont = pygame.font.Font(None, 48)
@@ -43,8 +46,7 @@ class Game:
 		self.subMessage = "May the slimiest Slime win."
 		self.frameCount = 0
 
-		rng = bool(random.getrandbits(1))
-		if rng == True:
+		if bool(random.getrandbits(1)) == True:
 			self.teamToServe = self.team1
 		else:
 			self.teamToServe = self.team2
@@ -52,7 +54,9 @@ class Game:
 		self.resetPositions()
 		self.gameLoop()
 
+	# Main game logic flow executed each frame
 	def gameLoop(self):
+		
 		gameOn = True
 		messageTimeoutFrameCount = (1000 / self.frameTimeMS) * 3
 
@@ -84,8 +88,9 @@ class Game:
 			if self.frameCount < messageTimeoutFrameCount:
 				self.frameCount += 1
 
-	# Return each game object to its original position
+	# Reset each game object to its starting position
 	def resetPositions(self):
+		
 		for i, player in enumerate(self.team1):
 			self.team1[i].x = ((self.winWidth / 2) / (len(self.team1) + 1)) * (i + 1)
 			self.team1[i].y = self.winHeight
@@ -102,14 +107,18 @@ class Game:
 		self.ball.xv = 0
 		self.ball.yv = 0
 
+	# Check for input from each player
 	def getInputFromPlayers(self):
+		
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_r]:
 			self.resetPositions()
 		for player in self.team1 + self.team2:
 			player.handleInput(keys)
 
+	# Update the position of the ball and each player
 	def updatePositionOfGameObjects(self):
+		
 		for player in self.team1 + self.team2:
 			if player.y < self.winHeight:
 				player.updatePosition(self.gravity)
@@ -117,7 +126,9 @@ class Game:
 				player.updatePosition(0)
 		self.ball.updatePosition(self.gravity)
 
+	# Enforce the boundaries on each side of the court
 	def keepPlayersInBounds(self):
+		
 		for i, player in enumerate(self.team1):
 			if player.x - player.radius < 1:
 				self.team1[i].x = player.radius
@@ -136,7 +147,9 @@ class Game:
 				self.team2[i].y = self.winHeight
 				self.team2[i].jumpEnabled = True
 
+	# Detect and process various collision events
 	def handleCollisions(self):
+
 		# Ball contacts floor
 		if self.ball.y > self.winHeight - self.ball.radius:
 			self.ball.y = self.winHeight - self.ball.radius
@@ -165,15 +178,13 @@ class Game:
 
 		# Ball contacts Player
 		for player in self.team1 + self.team2:
-			if ballContactsCircle(self.ball.x, self.ball.y, self.ball.radius, player.x, player.y, player.radius) == True:
-				(self.ball.xv, self.ball.yv) = getBallCircleVelocityVector(self.ball.x, self.ball.y, self.ball.xv, self.ball.yv, player.x, 
-					player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallMomentumTransfer, self.playerToBallHorizontalBoost)
+			if self.ballContactsCircle(player.x, player.y, player.radius) == True:
+				(self.ball.xv, self.ball.yv) = self.getBallCircleVelocityVector(player.x, player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallHorizontalBoost)
 				break
 
 		# Ball contacts net
-		if ballContactsCircle(self.ball.x, self.ball.y, self.ball.radius, self.winWidth /2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
-				(self.ball.xv, self.ball.yv) = getBallCircleVelocityVector(self.ball.x, self.ball.y, self.ball.xv, self.ball.yv, self.winWidth / 2, 
-					self.winHeight - self.netHeight + (self.netWidth / 2), 0, 0, self.bounceCoefficientNet, 0, 1)
+		if self.ballContactsCircle(self.winWidth /2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
+				(self.ball.xv, self.ball.yv) = self.getBallCircleVelocityVector(self.winWidth / 2, self.winHeight - self.netHeight + (self.netWidth / 2), 0, 0, self.bounceCoefficientNet, 1)
 		elif self.ball.y > self.winHeight - self.netHeight + self.netWidth:
 			if abs((self.winWidth / 2) - (self.ball.x + self.ball.radius)) <= self.netWidth / 2:
 				self.ball.x = (self.winWidth / 2) - (self.netWidth / 2) - self.ball.radius
@@ -182,7 +193,9 @@ class Game:
 				self.ball.x = (self.winWidth / 2) + (self.netWidth / 2) + self.ball.radius
 				self.ball.xv = -self.ball.xv * self.bounceCoefficientNet
 
+	# Draw the current state of the game
 	def draw(self):
+
 		# Control framerate
 		pygame.time.delay(self.frameTimeMS)
 
@@ -217,59 +230,65 @@ class Game:
 		# Refresh graphics
 		pygame.display.update()
 
+	# Return the message to display when a point is scored
 	def getTeamScoreMessage(self, team):
+
 		if len(team) == 1:
 			return team[0].name + " Scores!"
 		else:
 			return "Team Scores!"
 
-def ballContactsCircle(x, y, ballRadius, c_x, c_y, circleRadius):
-	if math.sqrt( ((x - c_x) ** 2) + ((y - c_y) ** 2) ) <= (ballRadius + circleRadius):
-		return True
-	return False
+	# Check if the ball is contacting a circle of the given dimensions
+	def ballContactsCircle(self, circleX, circleY, circleRadius):
 
-def getBallCircleVelocityVector(x, y, x_v, y_v, c_x, c_y, c_xv, c_yv, bounceCoefficient, playerToBallMomentumTransfer, playerToBallHorizontalBoost):
-	ballSpeed = math.sqrt((x_v ** 2) + (y_v ** 2))
-	XDiff = -(x - c_x)
-	YDiff = -(y - c_y)
-	if XDiff > 0:
-		if YDiff > 0:
-			Angle = math.degrees(math.atan(YDiff / XDiff))
-			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-		elif YDiff < 0:
-			Angle = math.degrees(math.atan(YDiff / XDiff))
-			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-	elif XDiff < 0:
-		if YDiff > 0:
-			Angle = 180 + math.degrees(math.atan(YDiff / XDiff))
-			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-		elif YDiff < 0:
-			Angle = -180 + math.degrees(math.atan(YDiff / XDiff))
-			XSpeed = -ballSpeed * math.cos(math.radians(Angle))
-			YSpeed = -ballSpeed * math.sin(math.radians(Angle))
-	elif XDiff == 0:
-		if YDiff > 0:
-			Angle = -90
-		else:
-			Angle = 90
-		XSpeed = ballSpeed * math.cos(math.radians(Angle))
-		YSpeed = ballSpeed * math.sin(math.radians(Angle))
-	elif YDiff == 0:
-		if XDiff < 0:
-			Angle = 0
-		else:
-			Angle = 180
-		XSpeed = ballSpeed * math.cos(math.radians(Angle))
-		YSpeed = ballSpeed * math.sin(math.radians(Angle))
-	x_v = (XSpeed + (c_xv * playerToBallMomentumTransfer)) * bounceCoefficient  * playerToBallHorizontalBoost
-	y_v = (YSpeed + (c_yv * playerToBallMomentumTransfer)) * bounceCoefficient
-	return (x_v, y_v)
+		if math.sqrt( ((self.ball.x - circleX) ** 2) + ((self.ball.y - circleY) ** 2) ) <= (self.ball.radius + circleRadius):
+			return True
+		return False
+
+	# Calculate the rebound velocity vector of the ball after contacting a circle of the given dimensions
+	def getBallCircleVelocityVector(self, circleX, circleY, circleXV, circleYV, bounceCoefficient, xvBoost):
+		ballSpeed = math.sqrt((self.ball.xv ** 2) + (self.ball.yv ** 2))
+		xDiff = -(self.ball.x - circleX)
+		yDiff = -(self.ball.y - circleY)
+		if xDiff > 0:
+			if yDiff > 0:
+				angle = math.degrees(math.atan(yDiff / xDiff))
+				xSpeed = -ballSpeed * math.cos(math.radians(angle))
+				ySpeed = -ballSpeed * math.sin(math.radians(angle))
+			elif yDiff < 0:
+				angle = math.degrees(math.atan(yDiff / xDiff))
+				xSpeed = -ballSpeed * math.cos(math.radians(angle))
+				ySpeed = -ballSpeed * math.sin(math.radians(angle))
+		elif xDiff < 0:
+			if yDiff > 0:
+				angle = 180 + math.degrees(math.atan(yDiff / xDiff))
+				xSpeed = -ballSpeed * math.cos(math.radians(angle))
+				ySpeed = -ballSpeed * math.sin(math.radians(angle))
+			elif yDiff < 0:
+				angle = -180 + math.degrees(math.atan(yDiff / xDiff))
+				xSpeed = -ballSpeed * math.cos(math.radians(angle))
+				ySpeed = -ballSpeed * math.sin(math.radians(angle))
+		elif xDiff == 0:
+			if yDiff > 0:
+				angle = -90
+			else:
+				angle = 90
+			xSpeed = ballSpeed * math.cos(math.radians(angle))
+			ySpeed = ballSpeed * math.sin(math.radians(angle))
+		elif yDiff == 0:
+			if yDiff < 0:
+				angle = 0
+			else:
+				angle = 180
+			xSpeed = ballSpeed * math.cos(math.radians(angle))
+			ySpeed = ballSpeed * math.sin(math.radians(angle))
+		xv = (xSpeed + (circleXV * self.playerToBallMomentumTransfer)) * bounceCoefficient * xvBoost
+		yv = (ySpeed + (circleYV * self.playerToBallMomentumTransfer)) * bounceCoefficient
+		return (xv, yv)
 
 # The loser of the point must be shamed. This function makes that happen.
 def getInsultMessage(loser, insultsUsedAlready):
+	
 	insults =	[	" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his family.",
 					", how do you like them apples?", ", u mad bro?", " must be rattled after that.", " continues to suck some serious ass.",
 					", wow, not even close.", ", I'm not mad, I'm just disappointed. In you. For that.",
@@ -289,10 +308,13 @@ def getInsultMessage(loser, insultsUsedAlready):
 
 # Draw a circle with smooth edges using anti-aliasing
 def drawAACircle(gameWin, x, y, r, color):
+	
 	pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), color)
 	pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 
+# Configure and start a new game
 def playGame():
+	
 	winWidth = 1000
 	winHeight = 500
 	backgroundColor = pygame.color.Color("lightblue")

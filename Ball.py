@@ -7,6 +7,7 @@ class Ball():
 
 	# Create a new ball
 	def __init__(self, radius, color):
+		
 		self.x = 0
 		self.y = 0
 		self.xv = 0
@@ -16,18 +17,20 @@ class Ball():
 
 	# Update position properties based on a given gravity value
 	def updatePosition(self, gravity):
+		
 		self.yv += gravity
 
-		if self.yv > 15:
-			self.yv = 15
-		if self.xv > 15:
-			self.xv = 15
+		if self.yv > 12:
+			self.yv = 12
+		if self.xv > 12:
+			self.xv = 12
 
 		self.x += self.xv
 		self.y += self.yv
 
 	# Draw the ball
 	def draw(self, gameWin):
+		
 		self.drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
 
 		# If the ball is off-screen, draw a dot indicating its horizontal location
@@ -49,5 +52,6 @@ class Ball():
 
 	# Draw a circle with smooth edges using anti-aliasing
 	def drawAACircle(self, gameWin, x, y, r, color):
+		
 		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), pygame.color.Color("black"))
