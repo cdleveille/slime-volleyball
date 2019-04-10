@@ -5,7 +5,7 @@ import pygame
 
 class Ball():
 
-	## Create a new ball
+	## Create new ball
 	def __init__(self, radius, color):
 		
 		self.x = 0
@@ -20,14 +20,13 @@ class Ball():
 	def updatePosition(self, gravity):
 		
 		self.yv += gravity
-		if self.xv > self.maxV:
-			self.xv = self.maxV
-		if self.xv < -self.maxV:
-			self.xv = -self.maxV
-		if self.yv > self.maxV:
-			self.yv = self.maxV
-		if self.yv < -self.maxV:
-			self.yv = -self.maxV
+
+		# Enforce the ball's maximum speed
+		if abs(self.xv) > self.maxV:
+			self.xv = self.maxV * (self.xv / abs(self.xv))
+		if abs(self.yv) > self.maxV:
+			self.yv = self.maxV * (self.yv / abs(self.yv))
+
 		self.x += self.xv
 		self.y += self.yv
 
@@ -37,7 +36,7 @@ class Ball():
 		pygame.gfxdraw.filled_circle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
 		pygame.gfxdraw.aacircle(gameWin, int(self.x), int(self.y), int(self.radius), pygame.color.Color("black"))
 
-		# If the ball is off-screen, draw a dot indicating its horizontal location
+		# If the ball is off-screen, draw a marker indicating its horizontal location
 		if self.y - self.radius < -450:
 			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, 4, pygame.color.Color("black"))
 		elif self.y - self.radius < -350:

@@ -6,7 +6,7 @@ import math
 
 class Player():
 
-	## Create a new player
+	## Create new player
 	def __init__(self, name, radius, speed, accel, jump, color, inputs, message):
 		
 		self.x = 0
@@ -60,10 +60,8 @@ class Player():
 					self.xv = 0
 
 		# Enforce the player's maximum speed
-		if self.xv > self.speed:
-			self.xv = self.speed
-		elif self.xv < -self.speed:
-			self.xv = -self.speed
+		if abs(self.xv) > self.speed:
+			self.xv = self.speed * (self.xv / abs(self.xv))
 
 		# Halve the player's velocity if the 'slow' input is used
 		if keys[slow]:

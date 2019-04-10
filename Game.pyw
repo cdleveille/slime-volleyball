@@ -10,7 +10,7 @@ from Ball import Ball
 
 class Game:
 
-	## Create a new game
+	## Create new game
 	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
 					playerToBallMomentumTransfer, playerToBallHorizontalBoost, insultsEnabled, netHeight, netWidth, netColor, team1, team2, ball):
 		
@@ -71,7 +71,7 @@ class Game:
 					gameOn = False
 
 			# Hide the game messages after 3 sec
-			if self.frameCount >= messageTimeoutFrameCount:
+			if self.frameCount > messageTimeoutFrameCount:
 				self.message = ""
 				self.subMessage = ""
 				players = self.team1 + self.team2
@@ -385,9 +385,9 @@ def main():
 	insultsEnabled = False
 	fourPlayer = False
 
-	playerSpeed = 5 # change in position (# pixels) per frame
+	playerSpeed = 5 # maximum change in position (# pixels) per frame
 	playerAccel = 5 # change in velocity per frame
-	playerJump = 5 # immediate upward speed (pixels per frame) on jump
+	playerJump = 5 # immediate upward velocity (pixels per frame) on jump
 	playerRadius = 48
 	ballRadius = 25
 	ballColor = pygame.color.Color("darkgreen")
