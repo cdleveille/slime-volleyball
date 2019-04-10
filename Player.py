@@ -6,8 +6,8 @@ import math
 
 class Player():
 
-	# Create a new player
-	def __init__(self, name, radius, speed, jump, color, inputs, message):
+	## Create a new player
+	def __init__(self, name, radius, speed, accel, jump, color, inputs, message):
 		
 		self.x = 0
 		self.y = 0
@@ -17,6 +17,7 @@ class Player():
 		self.name = name
 		self.radius = radius
 		self.speed = speed
+		self.accel = accel
 		self.jump = jump
 		self.inputs = inputs
 		self.jumpEnabled = True
@@ -26,26 +27,55 @@ class Player():
 		self.message = message
 		self.messageFont = pygame.font.Font(None, 24)
 
-	# Update movement properties based on the keys currently being pressed
+	## Update movement properties based on the keys currently being pressed
 	def handleInput(self, keys):
 		
 		jump = self.inputs[0]
 		left = self.inputs[1]
 		right = self.inputs[2]
+		slow = self.inputs[3]
 
+		# Accelerate/decelerate the player according to input
 		if keys[left] and keys[right]:
-			self.xv = 0
+			if self.xv < 0:
+				self.xv += self.accel
+				if self.xv > 0:
+					self.xv = 0
+			elif self.xv > 0:
+				self.xv -= self.accel
+				if self.xv < 0:
+					self.xv = 0
 		elif keys[left]:
-			self.xv = -self.speed
+			self.xv -= self.accel
 		elif keys[right]:
-			self.xv = self.speed
+			self.xv += self.accel
 		else:
-			self.xv = 0
+			if self.xv < 0:
+				self.xv += self.accel
+				if self.xv > 0:
+					self.xv = 0
+			elif self.xv > 0:
+				self.xv -= self.accel
+				if self.xv < 0:
+					self.xv = 0
+
+		# Enforce the player's maximum speed
+		if self.xv > self.speed:
+			self.xv = self.speed
+		elif self.xv < -self.speed:
+			self.xv = -self.speed
+
+		# Halve the player's velocity if the 'slow' input is used
+		if keys[slow]:
+			self.xv = self.xv / 2
+
+		# When the player jumps, disable jumping until landed
 		if (self.jumpEnabled == True):
 			if keys[jump]:
 				self.yv = -self.jump
 				self.jumpEnabled = False
 
+	## Calculate the amount to shift the pupil from the center of the eye based on the location of the ball
 	def getPupilOffset(self, ball, pupilX):
 		
 		(pupilShiftX, pupilShiftY) = (0, 0)
@@ -85,25 +115,28 @@ class Player():
 			pupilShiftY = self.pupilOffsetRatio * math.sin(math.radians(Angle))
 		return (pupilShiftX, pupilShiftY)
 
-	# Update position properties based on a given gravity value
+	## Update position properties given a gravity value
 	def updatePosition(self, gravity):
 		
 		self.yv += gravity
 		self.x += self.xv
 		self.y += self.yv
 
+	## Draw the player
 	def draw(self, gameWin, backgroundColor, ball):
 		
 		self.drawBody(gameWin, backgroundColor)
 		self.drawEye(gameWin, ball)
 		self.drawMessage(gameWin)
 
+	## Draw the player's body
 	def drawBody(self, gameWin, backgroundColor):
 		
 		self.drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
 		pygame.draw.rect(gameWin, backgroundColor, (self.x - self.radius, self.y, self.radius * 2 + 1, self.radius + 1))
 		pygame.gfxdraw.line(gameWin, int(self.x - self.radius), int(self.y), int(self.x + self.radius), int(self.y), pygame.color.Color("black"))
 
+	## Draw the player's eye
 	def drawEye(self, gameWin, ball):
 		
 		# If the ball contacts the ground on this player's side, widen the white of his eye
@@ -124,6 +157,7 @@ class Player():
 		
 		self.drawPupil(gameWin, ball)
 
+	## Draw the pupil within the player's eye
 	def drawPupil(self, gameWin, ball):
 		
 		# Draw the pupil so it is tracking the ball's location
@@ -137,13 +171,14 @@ class Player():
 		else:
 			self.drawAACircle(gameWin, int(self.x - self.eyeX + pupilOffsetX), int(self.y - self.eyeY + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
 
+	## Draw the message shown above the player
 	def drawMessage(self, gameWin):
 		
 		messageLabel = self.messageFont.render(self.message, True, pygame.color.Color("black"))
 		messageLabelRect = messageLabel.get_rect(center = (self.x, self.y - self.radius - 20))
 		gameWin.blit(messageLabel, messageLabelRect)
 
-	# Draw a circle with smooth edges using anti-aliasing
+	## Draw a circle with smooth edges using anti-aliasing
 	def drawAACircle(self, gameWin, x, y, r, color):
 		
 		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
