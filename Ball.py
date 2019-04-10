@@ -19,12 +19,10 @@ class Ball():
 	def updatePosition(self, gravity):
 		
 		self.yv += gravity
-
-		if self.yv > 12:
-			self.yv = 12
-		if self.xv > 12:
-			self.xv = 12
-
+		if self.yv > 15:
+			self.yv = 15
+		if self.xv > 15:
+			self.xv = 15
 		self.x += self.xv
 		self.y += self.yv
 

@@ -35,6 +35,7 @@ class Game:
 	# Start the game
 	def startGame(self):
 		
+		pygame.display.set_caption("Slime Volleyball")
 		self.gameWin = pygame.display.set_mode((self.winWidth, self.winHeight))
 		self.team1Score = 0
 		self.team2Score = 0
@@ -43,6 +44,7 @@ class Game:
 		self.subMessageFont = pygame.font.Font(None, 24)
 		self.messageColor = pygame.color.Color("black")
 		self.message = "Game On!"
+		self.insultsUsedAlready = []
 		self.subMessage = "May the slimiest Slime win."
 		self.frameCount = 0
 
@@ -158,10 +160,12 @@ class Game:
 				self.teamToServe = self.team1
 				self.team1Score += 1
 				self.message = self.getTeamScoreMessage(self.team1)
+				self.subMessage = self.getInsultMessage(self.team2)
 			else:
 				self.teamToServe = self.team2
 				self.team2Score += 1
 				self.message = self.getTeamScoreMessage(self.team2)
+				self.subMessage = self.getInsultMessage(self.team1)
 
 			self.draw()
 			pygame.time.delay(500)
@@ -176,15 +180,17 @@ class Game:
 			self.ball.x = self.winWidth - self.ball.radius
 			self.ball.xv = -self.ball.xv * self.bounceCoefficient
 
-		# Ball contacts Player
+		# Ball contacts player
 		for player in self.team1 + self.team2:
 			if self.ballContactsCircle(player.x, player.y, player.radius) == True:
-				(self.ball.xv, self.ball.yv) = self.getBallCircleVelocityVector(player.x, player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallHorizontalBoost)
+				if abs(self.ball.yv) < 3:
+					self.ball.x, self.ball.y = self.getBallContactsCirclePosition(player.x, player.y, player.radius)
+				(self.ball.xv, self.ball.yv) = self.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallHorizontalBoost)
 				break
 
 		# Ball contacts net
 		if self.ballContactsCircle(self.winWidth /2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
-				(self.ball.xv, self.ball.yv) = self.getBallCircleVelocityVector(self.winWidth / 2, self.winHeight - self.netHeight + (self.netWidth / 2), 0, 0, self.bounceCoefficientNet, 1)
+				(self.ball.xv, self.ball.yv) = self.getBallContactsCircleVelocity(self.winWidth / 2, self.winHeight - self.netHeight + (self.netWidth / 2), 0, 0, self.bounceCoefficientNet, 1)
 		elif self.ball.y > self.winHeight - self.netHeight + self.netWidth:
 			if abs((self.winWidth / 2) - (self.ball.x + self.ball.radius)) <= self.netWidth / 2:
 				self.ball.x = (self.winWidth / 2) - (self.netWidth / 2) - self.ball.radius
@@ -218,7 +224,7 @@ class Game:
 
 		# Draw net
 		pygame.draw.rect(self.gameWin, self.netColor, (self.winWidth / 2 - (self.netWidth / 2), self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth + 1, self.netHeight))
-		drawAACircle(self.gameWin, int(self.winWidth / 2), int(self.winHeight - self.netHeight + (self.netWidth / 2)), int(self.netWidth / 2), self.netColor)
+		self.drawAACircle(self.gameWin, int(self.winWidth / 2), int(self.winHeight - self.netHeight + (self.netWidth / 2)), int(self.netWidth / 2), self.netColor)
 
 		# Draw players
 		for player in self.team1 + self.team2:
@@ -227,16 +233,8 @@ class Game:
 		# Draw ball
 		self.ball.draw(self.gameWin)
 
-		# Refresh graphics
+		# Refresh scene
 		pygame.display.update()
-
-	# Return the message to display when a point is scored
-	def getTeamScoreMessage(self, team):
-
-		if len(team) == 1:
-			return team[0].name + " Scores!"
-		else:
-			return "Team Scores!"
 
 	# Check if the ball is contacting a circle of the given dimensions
 	def ballContactsCircle(self, circleX, circleY, circleRadius):
@@ -246,7 +244,7 @@ class Game:
 		return False
 
 	# Calculate the rebound velocity vector of the ball after contacting a circle of the given dimensions
-	def getBallCircleVelocityVector(self, circleX, circleY, circleXV, circleYV, bounceCoefficient, xvBoost):
+	def getBallContactsCircleVelocity(self, circleX, circleY, circleXV, circleYV, bounceCoefficient, xvBoost):
 		ballSpeed = math.sqrt((self.ball.xv ** 2) + (self.ball.yv ** 2))
 		xDiff = -(self.ball.x - circleX)
 		yDiff = -(self.ball.y - circleY)
@@ -286,35 +284,86 @@ class Game:
 		yv = (ySpeed + (circleYV * self.playerToBallMomentumTransfer)) * bounceCoefficient
 		return (xv, yv)
 
-# The loser of the point must be shamed. This function makes that happen.
-def getInsultMessage(loser, insultsUsedAlready):
-	
-	insults =	[	" got REKT right there.", ", turn your f*cking brain on.", " brought dishonor to his family.",
-					", how do you like them apples?", ", u mad bro?", " must be rattled after that.", " continues to suck some serious ass.",
-					", wow, not even close.", ", I'm not mad, I'm just disappointed. In you. For that.",
-					" is playing like a little bitch.", " is simply an embarassment.", " is garbage. Complete and utter garbage",
-					".isScrub() == True", " just managed to look like a complete idiot.", " is trash. Plain and simple.",
-					", try not to suck so much all the time", " f*cked up and he knows it."
-				]
+	# Calculate the position of the ball around the arc of the circle of the given dimensions it is currently contacting
+	def getBallContactsCirclePosition(self, circleX, circleY, circleRadius):
+		combinedRadius = self.ball.radius + circleRadius
+		xDiff = -(self.ball.x - circleX)
+		yDiff = -(self.ball.y - circleY)
+		if xDiff > 0:
+			if yDiff > 0:
+				angle = math.degrees(math.atan(yDiff / xDiff))
+				xShift = -combinedRadius * math.cos(math.radians(angle))
+				yShift = -combinedRadius * math.sin(math.radians(angle))
+			elif yDiff < 0:
+				angle = math.degrees(math.atan(yDiff / xDiff))
+				xShift = -combinedRadius * math.cos(math.radians(angle))
+				yShift = -combinedRadius * math.sin(math.radians(angle))
+		elif xDiff < 0:
+			if yDiff > 0:
+				angle = 180 + math.degrees(math.atan(yDiff / xDiff))
+				xShift = -combinedRadius * math.cos(math.radians(angle))
+				yShift = -combinedRadius * math.sin(math.radians(angle))
+			elif yDiff < 0:
+				angle = -180 + math.degrees(math.atan(yDiff / xDiff))
+				xShift = -combinedRadius * math.cos(math.radians(angle))
+				yShift = -combinedRadius * math.sin(math.radians(angle))
+		elif xDiff == 0:
+			if yDiff > 0:
+				angle = -90
+			else:
+				angle = 90
+			xShift = combinedRadius * math.cos(math.radians(angle))
+			yShift = combinedRadius * math.sin(math.radians(angle))
+		elif yDiff == 0:
+			if yDiff < 0:
+				angle = 0
+			else:
+				angle = 180
+			xShift = combinedRadius * math.cos(math.radians(angle))
+			yShift = combinedRadius * math.sin(math.radians(angle))
+		return (circleX + xShift, circleY + yShift)
 
-	if len(insultsUsedAlready) >= len(insults):
-		insultsUsedAlready.clear()
+	# Return the message to display when a point is scored
+	def getTeamScoreMessage(self, team):
 
-	insult = insults[random.randint(0, len(insults) - 1)]
-	while (insult in insultsUsedAlready):
-		insult = insults[random.randint(0, len(insults) - 1)]
-	insultsUsedAlready.append(insult)
-	return loser + insult
+		if len(team) == 1:
+			return team[0].name + " Scores!"
+		else:
+			return "Team Scores!"
 
-# Draw a circle with smooth edges using anti-aliasing
-def drawAACircle(gameWin, x, y, r, color):
-	
-	pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), color)
-	pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
+	# The loser of the point must be shamed. This function makes that happen.
+	def getInsultMessage(self, losingTeam):
+
+		if len(losingTeam) == 1:
+			loser = losingTeam[0].name
+			insults =	[	"@ got REKT right there.", "@, turn your f*cking brain on.", "@ brought dishonor to his family.",
+							"Hey @, how do you like them apples?", "@, u mad bro?", "@ must be pretty rattled after that.", "@ continues to suck some serious ass.",
+							"@, wow, not even close.", "I'm not mad, I'm just disappointed. In @. For that.",
+							"@ is currently playing like a little bitch.", "@ is simply an embarassment.", "@ is garbage. Complete and utter garbage",
+							"@.isScrub() == True", "@ just managed to look like a complete idiot.", "@ is trash. Plain and simple.",
+							"@, please try not to suck so much.", "@ f*cked up and he knows it."
+						]
+
+			if len(self.insultsUsedAlready) >= len(insults):
+				self.insultsUsedAlready.clear()
+
+			insult = insults[random.randint(0, len(insults) - 1)]
+			while (insult in self.insultsUsedAlready):
+				insult = insults[random.randint(0, len(insults) - 1)]
+			self.insultsUsedAlready.append(insult)
+			return insult.replace("@", loser)
+		else:
+			return ""
+
+	# Draw a circle with smooth edges using anti-aliasing
+	def drawAACircle(self, gameWin, x, y, r, color):
+		
+		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), color)
+		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 
 # Configure and start a new game
-def playGame():
-	
+def main():
+	pygame.init()
 	winWidth = 1000
 	winHeight = 500
 	backgroundColor = pygame.color.Color("lightblue")
@@ -339,10 +388,10 @@ def playGame():
 	if playerRadius == ballRadius * 2:
 		playerRadius += 1
 
-	p1 = Player("Blue Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkblue"), [pygame.K_w, pygame.K_a, pygame.K_d], "[W, A, D]")
-	p2 = Player("Red Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkred"), [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT], "[UP, LEFT, RIGHT]")
-	p3 = Player("Purple Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("purple"), [pygame.K_t, pygame.K_f, pygame.K_h], "[T, F, H]")
-	p4 = Player("Orange Slime", playerRadius, playerSpeed, playerJump, pygame.color.Color("orange"), [pygame.K_i, pygame.K_j, pygame.K_l], "[I, J, L]")
+	p1 = Player("Blue", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkblue"), [pygame.K_w, pygame.K_a, pygame.K_d], "[W, A, D]")
+	p2 = Player("Red", playerRadius, playerSpeed, playerJump, pygame.color.Color("darkred"), [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT], "[UP, LEFT, RIGHT]")
+	p3 = Player("Purple", playerRadius, playerSpeed, playerJump, pygame.color.Color("purple"), [pygame.K_t, pygame.K_f, pygame.K_h], "[T, F, H]")
+	p4 = Player("Orange", playerRadius, playerSpeed, playerJump, pygame.color.Color("orange"), [pygame.K_i, pygame.K_j, pygame.K_l], "[I, J, L]")
 
 	# 1v1
 	team1 = [p1] # controls: [W, A, D]
@@ -359,5 +408,5 @@ def playGame():
 				playerToBallMomentumTransfer, playerToBallHorizontalBoost, netHeight, netWidth, netColor, team1, team2, ball)
 	game.startGame()
 
-pygame.init()
-playGame()
+if __name__ == "__main__":
+	main()

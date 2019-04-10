@@ -20,7 +20,9 @@ class Player():
 		self.jump = jump
 		self.inputs = inputs
 		self.jumpEnabled = True
-		self.pupilOffsetRatio = self.radius / 14
+		self.eyeX = self.radius / 2
+		self.eyeY = self.radius * (3 / 5)
+		self.pupilOffsetRatio = self.radius / 10
 		self.message = message
 		self.messageFont = pygame.font.Font(None, 24)
 
@@ -107,18 +109,18 @@ class Player():
 		# If the ball contacts the ground on this player's side, widen the white of his eye
 		if ball.y + ball.radius >= pygame.display.get_surface().get_height():
 			if self.x < pygame.display.get_surface().get_width() / 2 and ball.x < pygame.display.get_surface().get_width() / 2:
-				eyeRadius = self.radius / 3.8
+				eyeRadius = self.radius / 3
 			elif self.x > pygame.display.get_surface().get_width() / 2 and ball.x > pygame.display.get_surface().get_width() / 2:
-				eyeRadius = self.radius / 3.8
+				eyeRadius = self.radius / 3
 			else:
-				eyeRadius = self.radius / 5
+				eyeRadius = self.radius / 4
 		else:
-			eyeRadius = self.radius / 5
+			eyeRadius = self.radius / 4
 
 		if (self.x < pygame.display.get_surface().get_width() / 2):
-			self.drawAACircle(gameWin, int(self.x + self.radius * 0.4), int(self.y - self.radius / 2), int(eyeRadius), pygame.color.Color("lightgray"))
+			self.drawAACircle(gameWin, int(self.x + self.eyeX), int(self.y - self.eyeY), int(eyeRadius), pygame.color.Color("lightgray"))
 		else:
-			self.drawAACircle(gameWin, int(self.x - self.radius * 0.4), int(self.y - self.radius / 2), int(eyeRadius), pygame.color.Color("lightgray"))
+			self.drawAACircle(gameWin, int(self.x - self.eyeX), int(self.y - self.eyeY), int(eyeRadius), pygame.color.Color("lightgray"))
 		
 		self.drawPupil(gameWin, ball)
 
@@ -126,14 +128,14 @@ class Player():
 		
 		# Draw the pupil so it is tracking the ball's location
 		if self.x < pygame.display.get_surface().get_width() / 2:
-			(pupilOffsetX, pupilOffsetY) = self.getPupilOffset(ball, self.radius * 0.4)
+			(pupilOffsetX, pupilOffsetY) = self.getPupilOffset(ball, self.eyeX)
 		else:
-			(pupilOffsetX, pupilOffsetY) = self.getPupilOffset(ball, -self.radius * 0.4)
+			(pupilOffsetX, pupilOffsetY) = self.getPupilOffset(ball, -self.eyeX)
 
 		if (self.x < pygame.display.get_surface().get_width() / 2):
-			self.drawAACircle(gameWin, int(self.x + self.radius * 0.4 + pupilOffsetX), int(self.y - self.radius / 2 + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
+			self.drawAACircle(gameWin, int(self.x + self.eyeX + pupilOffsetX), int(self.y - self.eyeY + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
 		else:
-			self.drawAACircle(gameWin, int(self.x - self.radius * 0.4 + pupilOffsetX), int(self.y - self.radius / 2 + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
+			self.drawAACircle(gameWin, int(self.x - self.eyeX + pupilOffsetX), int(self.y - self.eyeY + pupilOffsetY), int(self.radius / 8), pygame.color.Color("black"))
 
 	def drawMessage(self, gameWin):
 		
