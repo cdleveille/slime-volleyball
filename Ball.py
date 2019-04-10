@@ -12,6 +12,7 @@ class Ball():
 		self.y = 0
 		self.xv = 0
 		self.yv = 0
+		self.maxV = 15
 		self.color = color
 		self.radius = radius
 
@@ -19,6 +20,14 @@ class Ball():
 	def updatePosition(self, gravity):
 		
 		self.yv += gravity
+		if self.xv > self.maxV:
+			self.xv = self.maxV
+		if self.xv < -self.maxV:
+			self.xv = -self.maxV
+		if self.yv > self.maxV:
+			self.yv = self.maxV
+		if self.yv < -self.maxV:
+			self.yv = -self.maxV
 		self.x += self.xv
 		self.y += self.yv
 
