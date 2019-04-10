@@ -153,16 +153,26 @@ class Game:
 	## Detect and process various collision events
 	def handleCollisions(self):
 
+		# Ball contacts player
+		for player in self.team1 + self.team2:
+			if self.ballContactsCircle(player.x, player.y, player.radius) == True:
+				if abs(self.ball.yv) < 3:
+					self.ball.x, self.ball.y = self.getBallContactsCirclePosition(player.x, player.y, player.radius)
+				(self.ball.xv, self.ball.yv) = self.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallHorizontalBoost)
+				break
+
 		# Ball contacts floor
 		if self.ball.y > self.winHeight - self.ball.radius:
 			self.ball.y = self.winHeight - self.ball.radius
 			self.ball.yv = -self.ball.yv * self.bounceCoefficient
+			# Team 1 scores a point
 			if self.ball.x > self.winWidth / 2:
 				self.teamToServe = self.team1
 				self.team1Score += 1
 				self.message = self.getTeamScoreMessage(self.team1)
 				if (self.insultsEnabled == True):
 					self.subMessage = self.getInsultMessage(self.team2)
+			# Team 2 scores a point
 			else:
 				self.teamToServe = self.team2
 				self.team2Score += 1
@@ -170,6 +180,7 @@ class Game:
 				if (self.insultsEnabled == True):
 					self.subMessage = self.getInsultMessage(self.team1)
 
+			# Pause briefly before starting a new rally
 			self.draw()
 			pygame.time.delay(500)
 			self.resetPositions()
@@ -182,14 +193,6 @@ class Game:
 		elif self.ball.x + self.ball.radius > self.winWidth:
 			self.ball.x = self.winWidth - self.ball.radius
 			self.ball.xv = -self.ball.xv * self.bounceCoefficient
-
-		# Ball contacts player
-		for player in self.team1 + self.team2:
-			if self.ballContactsCircle(player.x, player.y, player.radius) == True:
-				if abs(self.ball.yv) < 3:
-					self.ball.x, self.ball.y = self.getBallContactsCirclePosition(player.x, player.y, player.radius)
-				(self.ball.xv, self.ball.yv) = self.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallHorizontalBoost)
-				break
 
 		# Ball contacts net
 		if self.ballContactsCircle(self.winWidth /2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
