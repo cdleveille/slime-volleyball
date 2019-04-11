@@ -6,4 +6,4 @@
 
 **Play from EXE (Windows):**
 1. Download or clone repository
-2. Use the 'Slime Volleyball' shortcut to play the most recently built EXE
+2. Use the 'Slime-Volleyball' shortcut to play the most recently built EXE
