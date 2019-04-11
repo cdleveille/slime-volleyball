@@ -368,8 +368,8 @@ class Game:
 ## Configure and start a new game
 def main():
 	pygame.init()
-	winWidth = 1000
-	winHeight = 500
+	winWidth = 1200
+	winHeight = 600
 	backgroundColor = pygame.color.Color("lightblue")
 	backgroundImage = None
 	frameTimeMS = 7 # number of milliseconds in one frame
@@ -388,7 +388,7 @@ def main():
 	playerSpeed = 5 # maximum change in position (# pixels) per frame
 	playerAccel = 5 # change in velocity per frame
 	playerJump = 5 # immediate upward velocity (pixels per frame) on jump
-	playerRadius = 48
+	playerRadius = 56
 	ballRadius = 25
 	ballColor = pygame.color.Color("darkgreen")
 
