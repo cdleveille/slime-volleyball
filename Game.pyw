@@ -11,14 +11,14 @@ from Ball import Ball
 class Game:
 
 	## Create new game
-	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
+	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, framerate, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
 					playerToBallMomentumTransfer, playerToBallHorizontalBoost, insultsEnabled, netHeight, netWidth, netColor, team1, team2, ball):
 		
 		self.winWidth = winWidth
 		self.winHeight = winHeight
 		self.backgroundColor = backgroundColor
 		self.backgroundImage = backgroundImage
-		self.frameTimeMS = frameTimeMS
+		self.framerate = framerate
 		self.gravity = gravity
 		self.bounceCoefficient = bounceCoefficient
 		self.bounceCoefficientPlayer = bounceCoefficientPlayer
@@ -61,7 +61,8 @@ class Game:
 	def gameLoop(self):
 		
 		gameOn = True
-		messageTimeoutFrameCount = (1000 / self.frameTimeMS) * 3
+		messageTimeoutFrameCount = self.framerate * 3
+		clock = pygame.time.Clock()
 
 		while (gameOn == True):
 
@@ -71,7 +72,7 @@ class Game:
 					gameOn = False
 
 			# Hide the game messages after 3 sec
-			if self.frameCount > messageTimeoutFrameCount:
+			if self.frameCount >= messageTimeoutFrameCount:
 				self.message = ""
 				self.subMessage = ""
 				players = self.team1 + self.team2
@@ -90,6 +91,8 @@ class Game:
 
 			if self.frameCount < messageTimeoutFrameCount:
 				self.frameCount += 1
+
+			clock.tick(self.framerate)
 
 	## Reset each game object to its starting position
 	def resetPositions(self):
@@ -208,9 +211,6 @@ class Game:
 	## Draw the current state of the game
 	def draw(self):
 
-		# Control framerate
-		pygame.time.delay(self.frameTimeMS)
-
 		# Fill window with background color
 		self.gameWin.fill(self.backgroundColor)
 
@@ -234,8 +234,12 @@ class Game:
 		pygame.gfxdraw.filled_circle(self.gameWin, int(self.winWidth / 2), int(self.winHeight - self.netHeight + (self.netWidth / 2)), int(self.netWidth / 2), self.netColor)
 
 		# Draw players
+		if len(self.team1 + self.team2) > 2 or self.backgroundImage is not None:
+			drawPillowInd = True
+		else:
+			drawPillowInd = False
 		for player in self.team1 + self.team2:
-			player.draw(self.gameWin, self.backgroundColor, self.ball)
+			player.draw(self.gameWin, self.backgroundColor, self.ball, drawPillowInd)
 
 		# Draw ball
 		self.ball.draw(self.gameWin)
@@ -372,13 +376,13 @@ def main():
 	winHeight = 600
 	backgroundColor = pygame.color.Color("lightblue")
 	backgroundImage = None
-	frameTimeMS = 7 # number of milliseconds in one frame
-	gravity = 0.1 # change in speed per frame
+	framerate = 144 # frames per second
+	gravity = 0.1 # change in speed per frame (acts on ball and players)
 	bounceCoefficient = 0.98
 	bounceCoefficientPlayer = 0.98
 	bounceCoefficientNet = 0.75
 	playerToBallMomentumTransfer = 0.12 # percentage of a player's velocity that gets transferred to the ball on contact
-	playerToBallHorizontalBoost = 1.03
+	playerToBallHorizontalBoost = 1.03 # additional boost to the x-velocity of the ball on contact with player
 	netHeight = 100
 	netWidth = 20
 	netColor = pygame.color.Color("black")
@@ -389,7 +393,7 @@ def main():
 	playerAccel = 5 # change in velocity per frame
 	playerJump = 5 # immediate upward velocity (pixels per frame) on jump
 	playerRadius = 56
-	ballRadius = 25
+	ballRadius = 24
 	ballColor = pygame.color.Color("darkgreen")
 
 	if playerRadius == ballRadius * 2:
@@ -411,7 +415,7 @@ def main():
 
 	ball = Ball(ballRadius, ballColor)
 
-	game = Game(winWidth, winHeight, backgroundColor, backgroundImage, frameTimeMS, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
+	game = Game(winWidth, winHeight, backgroundColor, backgroundImage, framerate, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
 				playerToBallMomentumTransfer, playerToBallHorizontalBoost, insultsEnabled, netHeight, netWidth, netColor, team1, team2, ball)
 
 	game.startGame()

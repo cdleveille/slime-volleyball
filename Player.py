@@ -3,6 +3,7 @@
 
 import pygame
 import math
+from PIL import Image, ImageDraw
 
 class Player():
 
@@ -26,6 +27,7 @@ class Player():
 		self.pupilOffsetRatio = self.radius / 10
 		self.message = message
 		self.messageFont = pygame.font.Font(None, 24)
+		self.image = self.initPlayerBody()
 
 	## Update movement properties based on the keys currently being pressed
 	def handleInput(self, keys):
@@ -68,10 +70,9 @@ class Player():
 			self.xv = self.xv / 2
 
 		# When the player jumps, disable jumping until landed
-		if (self.jumpEnabled == True):
-			if keys[jump]:
-				self.yv = -self.jump
-				self.jumpEnabled = False
+		if keys[jump] and self.jumpEnabled == True:
+			self.yv = -self.jump
+			self.jumpEnabled = False
 
 	## Calculate the amount to shift the pupil from the center of the eye based on the location of the ball
 	def getPupilOffset(self, ball, pupilX):
@@ -120,18 +121,39 @@ class Player():
 		self.x += self.xv
 		self.y += self.yv
 
+	## Initialize the Pillow semi-circle used for the player's body
+	def initPlayerBody(self):
+		pil_size = self.radius * 2
+		pil_image = Image.new("RGBA", (pil_size, pil_size))
+		pil_draw = ImageDraw.Draw(pil_image)
+		pil_draw.pieslice((0, 0, pil_size, pil_size), 180, 0, fill = (self.color.r, self.color.g, self.color.b))
+		mode = pil_image.mode
+		size = pil_image.size
+		data = pil_image.tobytes()
+		return pygame.image.fromstring(data, size, mode)
+
 	## Draw the player
-	def draw(self, gameWin, backgroundColor, ball):
+	def draw(self, gameWin, backgroundColor, ball, pillowDrawInd):
 		
-		self.drawBody(gameWin, backgroundColor)
+		if (pillowDrawInd == True):
+			self.drawBodyPillow(gameWin)
+		else:
+			self.drawBody(gameWin, backgroundColor)
 		self.drawEye(gameWin, ball)
 		self.drawMessage(gameWin)
 
-	## Draw the player's body
+	## Draw the player's body (anti-aliased and more resource efficient, but draws rectangle hiding bottom of player)
 	def drawBody(self, gameWin, backgroundColor):
-		
 		self.drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
 		pygame.draw.rect(gameWin, backgroundColor, (self.x - self.radius, self.y, self.radius * 2 + 1, self.radius + 1))
+		pygame.gfxdraw.line(gameWin, int(self.x - self.radius), int(self.y), int(self.x + self.radius), int(self.y), pygame.color.Color("black"))
+
+	## Draw the player's body (does not draw rectangle hiding bottom of player, but is more resource intensive)
+	def drawBodyPillow(self, gameWin):
+		
+		image_rect = self.image.get_rect(center = (self.x, self.y))
+		gameWin.blit(self.image, image_rect)
+		pygame.gfxdraw.arc(gameWin, int(self.x), int(self.y), int(self.radius), 180, 360, pygame.color.Color("black"))
 		pygame.gfxdraw.line(gameWin, int(self.x - self.radius), int(self.y), int(self.x + self.radius), int(self.y), pygame.color.Color("black"))
 
 	## Draw the player's eye
