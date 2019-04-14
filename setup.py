@@ -14,4 +14,4 @@ setup(  name = "Slime Volleyball",
         version = "1.0",
         description = "May the slimiest Slime win!",
         options = {"build_exe": build_exe_options},
-        executables = [Executable("Game.pyw", base=base)])
+        executables = [Executable("Slime-Volleyball.pyw", base=base)])

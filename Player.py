@@ -2,6 +2,7 @@
 ## April 2019
 
 import pygame
+import pygame.gfxdraw
 import math
 from PIL import Image, ImageDraw
 
@@ -28,17 +29,16 @@ class Player():
 		self.message = message
 		self.messageFont = pygame.font.Font(None, 24)
 		self.image = self.initPlayerBody()
+		self.jumpInput = self.inputs[0]
+		self.leftInput = self.inputs[1]
+		self.rightInput = self.inputs[2]
+		self.slowInput = self.inputs[3]
 
 	## Update movement properties based on the keys currently being pressed
 	def handleInput(self, keys):
-		
-		jump = self.inputs[0]
-		left = self.inputs[1]
-		right = self.inputs[2]
-		slow = self.inputs[3]
 
 		# Accelerate/decelerate the player according to input
-		if keys[left] and keys[right]:
+		if keys[self.leftInput] and keys[self.rightInput]:
 			if self.xv < 0:
 				self.xv += self.accel
 				if self.xv > 0:
@@ -47,9 +47,9 @@ class Player():
 				self.xv -= self.accel
 				if self.xv < 0:
 					self.xv = 0
-		elif keys[left]:
+		elif keys[self.leftInput]:
 			self.xv -= self.accel
-		elif keys[right]:
+		elif keys[self.rightInput]:
 			self.xv += self.accel
 		else:
 			if self.xv < 0:
@@ -66,11 +66,11 @@ class Player():
 			self.xv = self.speed * (self.xv / abs(self.xv))
 
 		# Halve the player's velocity if the 'slow' input is used
-		if keys[slow]:
+		if keys[self.slowInput]:
 			self.xv = self.xv / 2
 
 		# When the player jumps, disable jumping until landed
-		if keys[jump] and self.jumpEnabled == True:
+		if keys[self.jumpInput] and self.jumpEnabled == True:
 			self.yv = -self.jump
 			self.jumpEnabled = False
 
