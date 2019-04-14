@@ -7,4 +7,4 @@
 
 **Play from EXE (Windows):**
 1. Download or clone repository
-2. Use the 'Play Slime Volleyball!' shortcut to play the most recently committed EXE
+2. Run build\exe.win32-3.7\Slime-Volleyball.exe
