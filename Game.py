@@ -1,10 +1,8 @@
 ## Chris Leveille
 ## April 2019
 
-import pygame
+import pygame, math, random
 import pygame.gfxdraw
-import math
-import random
 
 class Game:
 
@@ -33,7 +31,7 @@ class Game:
 
 	## Start the game
 	def startGame(self):
-		
+		pygame.display.set_icon(pygame.image.load('assets/slime.ico'))
 		pygame.display.set_caption("Slime Volleyball")
 		self.gameWin = pygame.display.set_mode((self.winWidth, self.winHeight))
 		self.team1Score = 0
@@ -101,10 +99,12 @@ class Game:
 		for i, player in enumerate(self.team1):
 			self.team1[i].x = ((self.winWidth / 2) / (len(self.team1) + 1)) * (i + 1)
 			self.team1[i].y = self.winHeight
+			self.team1[i].yv = 0
 
 		for i, player in enumerate(self.team2):
 			self.team2[i].x = (((self.winWidth / 2) / (len(self.team2) + 1)) * (i + 1)) + (self.winWidth / 2)
 			self.team2[i].y = self.winHeight
+			self.team2[i].yv = 0
 
 		index = random.randint(0, len(self.teamToServe) - 1)
 		for i, player in enumerate(self.teamToServe):
@@ -118,7 +118,9 @@ class Game:
 	def getInputFromPlayers(self):
 		
 		keys = pygame.key.get_pressed()
-		if keys[pygame.K_r]:
+
+		
+		if keys[pygame.K_LCTRL] and keys[pygame.K_r]:
 			self.resetPositions()
 		for player in self.team1 + self.team2:
 			player.handleInput(keys)
@@ -141,7 +143,7 @@ class Game:
 				self.team1[i].x = player.radius
 			elif player.x + player.radius > self.winWidth / 2 - self.netWidth / 2 - 1:
 				self.team1[i].x = self.winWidth / 2 - self.netWidth / 2 - player.radius - 1
-			if player.y > self.winHeight:
+			if player.y >= self.winHeight:
 				self.team1[i].y = self.winHeight
 				self.team1[i].jumpEnabled = True
 
@@ -150,7 +152,7 @@ class Game:
 				self.team2[i].x = self.winWidth / 2 + self.netWidth / 2 + player.radius + 1
 			elif player.x + player.radius > self.winWidth - 1:
 				self.team2[i].x = self.winWidth - player.radius - 1
-			if player.y > self.winHeight:
+			if player.y >= self.winHeight:
 				self.team2[i].y = self.winHeight
 				self.team2[i].jumpEnabled = True
 

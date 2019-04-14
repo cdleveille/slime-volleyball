@@ -1,9 +1,8 @@
 ## Chris Leveille
 ## April 2019
 
-import pygame
+import pygame, math
 import pygame.gfxdraw
-import math
 from PIL import Image, ImageDraw
 
 class Player():
@@ -21,7 +20,6 @@ class Player():
 		self.speed = speed
 		self.accel = accel
 		self.jump = jump
-		self.inputs = inputs
 		self.jumpEnabled = True
 		self.eyeX = self.radius / 2
 		self.eyeY = self.radius * (3 / 5)
@@ -29,10 +27,10 @@ class Player():
 		self.message = message
 		self.messageFont = pygame.font.Font(None, 24)
 		self.image = self.initPlayerBody()
-		self.jumpInput = self.inputs[0]
-		self.leftInput = self.inputs[1]
-		self.rightInput = self.inputs[2]
-		self.slowInput = self.inputs[3]
+		self.jumpInput = inputs[0]
+		self.leftInput = inputs[1]
+		self.rightInput = inputs[2]
+		self.slowInput = inputs[3]
 
 	## Update movement properties based on the keys currently being pressed
 	def handleInput(self, keys):
@@ -65,7 +63,7 @@ class Player():
 		if abs(self.xv) > self.speed:
 			self.xv = self.speed * (self.xv / abs(self.xv))
 
-		# Halve the player's velocity if the 'slow' input is used
+		# Halve the player's horizontal velocity if the 'slow' input is used
 		if keys[self.slowInput]:
 			self.xv = self.xv / 2
 
@@ -127,10 +125,7 @@ class Player():
 		pil_image = Image.new("RGBA", (pil_size, pil_size))
 		pil_draw = ImageDraw.Draw(pil_image)
 		pil_draw.pieslice((0, 0, pil_size, pil_size), 180, 0, fill = (self.color.r, self.color.g, self.color.b))
-		mode = pil_image.mode
-		size = pil_image.size
-		data = pil_image.tobytes()
-		return pygame.image.fromstring(data, size, mode)
+		return pygame.image.fromstring(pil_image.tobytes(), pil_image.size, pil_image.mode)
 
 	## Draw the player
 	def draw(self, gameWin, backgroundColor, ball, pillowDrawInd):

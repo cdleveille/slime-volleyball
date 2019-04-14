@@ -1,22 +1,23 @@
-import pygame
+import os, pygame
 from Game import Game
 from Player import Player
 from Ball import Ball
 
 ## Configure and start a new game
 def main():
+	os.environ['SDL_VIDEO_CENTERED'] = '1'
 	pygame.init()
 	winWidth = 1200
 	winHeight = 600
 	backgroundColor = pygame.color.Color("lightblue")
 	backgroundImage = None
 	framerate = 144 # frames per second
-	gravity = 0.1 # change in speed per frame (acts on ball and players)
+	gravity = 0.1 # change in vertical speed per frame (acts on ball and players)
 	bounceCoefficient = 0.98
 	bounceCoefficientPlayer = 0.98
 	bounceCoefficientNet = 0.75
 	playerToBallMomentumTransfer = 0.12 # percentage of a player's velocity that gets transferred to the ball on contact
-	playerToBallHorizontalBoost = 1.03 # additional boost to the x-velocity of the ball on contact with player
+	playerToBallHorizontalBoost = 1.03 # extra boost to the x-velocity of the ball on contact with player
 	netHeight = 100
 	netWidth = 20
 	netColor = pygame.color.Color("black")
