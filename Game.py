@@ -147,6 +147,7 @@ class Game:
 				self.team1[i].xv = 0
 			if player.y >= self.winHeight:
 				self.team1[i].y = self.winHeight
+				self.team1[i].yv = 0
 				self.team1[i].jumpEnabled = True
 
 		for i, player in enumerate(self.team2):
@@ -158,6 +159,7 @@ class Game:
 				self.team2[i].xv = 0
 			if player.y >= self.winHeight:
 				self.team2[i].y = self.winHeight
+				self.team2[i].yv = 0
 				self.team2[i].jumpEnabled = True
 
 	## Detect and process various collision events
