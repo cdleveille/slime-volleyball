@@ -1,3 +1,6 @@
+## Chris Leveille
+## April 2019
+
 import os, pygame
 from Game import Game
 from Player import Player
