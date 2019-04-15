@@ -141,8 +141,10 @@ class Game:
 		for i, player in enumerate(self.team1):
 			if player.x - player.radius < 1:
 				self.team1[i].x = player.radius
+				self.team1[i].xv = 0
 			elif player.x + player.radius > self.winWidth / 2 - self.netWidth / 2 - 1:
 				self.team1[i].x = self.winWidth / 2 - self.netWidth / 2 - player.radius - 1
+				self.team1[i].xv = 0
 			if player.y >= self.winHeight:
 				self.team1[i].y = self.winHeight
 				self.team1[i].jumpEnabled = True
@@ -150,8 +152,10 @@ class Game:
 		for i, player in enumerate(self.team2):
 			if player.x - player.radius < self.winWidth / 2 + self.netWidth / 2 + 1:
 				self.team2[i].x = self.winWidth / 2 + self.netWidth / 2 + player.radius + 1
+				self.team2[i].xv = 0
 			elif player.x + player.radius > self.winWidth - 1:
 				self.team2[i].x = self.winWidth - player.radius - 1
+				self.team2[i].xv = 0
 			if player.y >= self.winHeight:
 				self.team2[i].y = self.winHeight
 				self.team2[i].jumpEnabled = True

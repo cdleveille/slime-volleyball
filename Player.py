@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw
 class Player():
 
 	## Create new player
-	def __init__(self, name, radius, speed, accel, jump, color, inputs, message):
+	def __init__(self, name, radius, speed, accel, jump, color, keyInputs, xinput, message):
 		
 		self.x = 0
 		self.y = 0
@@ -18,7 +18,7 @@ class Player():
 		self.name = name
 		self.radius = radius
 		self.speed = speed
-		self.accel = accel
+		self.accel = 5
 		self.jump = jump
 		self.jumpEnabled = True
 		self.eyeX = self.radius / 2
@@ -27,50 +27,86 @@ class Player():
 		self.message = message
 		self.messageFont = pygame.font.Font(None, 24)
 		self.image = self.initPlayerBody()
-		self.jumpInput = inputs[0]
-		self.leftInput = inputs[1]
-		self.rightInput = inputs[2]
-		self.slowInput = inputs[3]
+		self.jumpInput = keyInputs[0]
+		self.leftInput = keyInputs[1]
+		self.rightInput = keyInputs[2]
+		self.slowInput = keyInputs[3]
+		self.xinput = xinput
 
-	## Update movement properties based on the keys currently being pressed
+	## Update movement properties based on the immediate inputs
 	def handleInput(self, keys):
 
-		# Accelerate/decelerate the player according to input
-		if keys[self.leftInput] and keys[self.rightInput]:
-			if self.xv < 0:
+		# Handle XInput events
+		if self.xinput is not None:
+
+			self.xinput.dispatch_events()
+
+			@self.xinput.event
+			def on_button(button, pressed):
+				print('button', button, pressed)
+
+				# When the player jumps, disable jumping until landed
+				if button == 13 and pressed == 1 and self.jumpEnabled == True:
+					self.yv = -self.jump
+					self.jumpEnabled = False
+
+			stickPct = 2 * self.xinput.pollLeftStick()
+			if stickPct > 0:
 				self.xv += self.accel
-				if self.xv > 0:
-					self.xv = 0
-			elif self.xv > 0:
+			elif stickPct < 0:
 				self.xv -= self.accel
+			else:
 				if self.xv < 0:
-					self.xv = 0
-		elif keys[self.leftInput]:
-			self.xv -= self.accel
-		elif keys[self.rightInput]:
-			self.xv += self.accel
+					self.xv += self.accel
+					if self.xv > 0:
+						self.xv = 0
+				elif self.xv > 0:
+					self.xv -= self.accel
+					if self.xv < 0:
+						self.xv = 0
+
+			# Enforce the player's maximum speed (based on how far the stick is tilted)
+			if abs(self.xv) > abs(self.speed * stickPct):
+				self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
+				print(self.xv)
+
 		else:
-			if self.xv < 0:
-				self.xv += self.accel
-				if self.xv > 0:
-					self.xv = 0
-			elif self.xv > 0:
-				self.xv -= self.accel
+			# Accelerate/decelerate the player according to keyboard input
+			if keys[self.leftInput] and keys[self.rightInput]:
 				if self.xv < 0:
-					self.xv = 0
+					self.xv += self.accel
+					if self.xv > 0:
+						self.xv = 0
+				elif self.xv > 0:
+					self.xv -= self.accel
+					if self.xv < 0:
+						self.xv = 0
+			elif keys[self.leftInput]:
+				self.xv -= self.accel
+			elif keys[self.rightInput]:
+				self.xv += self.accel
+			else:
+				if self.xv < 0:
+					self.xv += self.accel
+					if self.xv > 0:
+						self.xv = 0
+				elif self.xv > 0:
+					self.xv -= self.accel
+					if self.xv < 0:
+						self.xv = 0
 
-		# Enforce the player's maximum speed
-		if abs(self.xv) > self.speed:
-			self.xv = self.speed * (self.xv / abs(self.xv))
+			# When the player jumps, disable jumping until landed
+			if keys[self.jumpInput] and self.jumpEnabled == True:
+				self.yv = -self.jump
+				self.jumpEnabled = False
 
-		# Halve the player's horizontal velocity if the 'slow' input is used
-		if keys[self.slowInput]:
-			self.xv = self.xv / 2
+			# Enforce the player's maximum speed
+			if abs(self.xv) > self.speed:
+				self.xv = self.speed * (self.xv / abs(self.xv))
 
-		# When the player jumps, disable jumping until landed
-		if keys[self.jumpInput] and self.jumpEnabled == True:
-			self.yv = -self.jump
-			self.jumpEnabled = False
+			# Halve the player's horizontal velocity if the 'slow' input is used
+				if keys[self.slowInput]:
+					self.xv = self.xv / 2
 
 	## Calculate the amount to shift the pupil from the center of the eye based on the location of the ball
 	def getPupilOffset(self, ball, pupilX):
