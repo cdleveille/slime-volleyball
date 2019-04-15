@@ -43,7 +43,6 @@ class Player():
 
 			@self.xinput.event
 			def on_button(button, pressed):
-				print('button', button, pressed)
 
 				# When the player jumps, disable jumping until landed
 				if button == 13 and pressed == 1 and self.jumpEnabled == True:
@@ -68,7 +67,6 @@ class Player():
 			# Enforce the player's maximum speed (based on how far the stick is tilted)
 			if abs(self.xv) > abs(self.speed * stickPct):
 				self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
-				print(self.xv)
 
 		else:
 			# Accelerate/decelerate the player according to keyboard input
