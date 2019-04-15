@@ -2,7 +2,7 @@
 1. Download or clone repository
 2. Install [Python 3](https://www.python.org/downloads/)
 3. Install packages:
-    - [pygame](https://www.pygame.org/wiki/GettingStarted/): ```pip install pygame```
+    - [Pygame](https://www.pygame.org/wiki/GettingStarted/): ```pip install Pygame```
     - [Pillow](https://pypi.org/project/Pillow/): ```pip install Pillow```
     - [Pyglet](https://pyglet.readthedocs.io/en/pyglet-1.3-maintenance/programming_guide/installation.html): ```pip install Pyglet```
 4. Run Slime-Volleyball.pyw
