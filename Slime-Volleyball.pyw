@@ -1,39 +1,43 @@
 ## Chris Leveille
 ## April 2019
 
-import os, pygame
+import configparser, os, pygame
 from Game import Game
 from Player import Player
 from Ball import Ball
 from xinput import *
 
-## Configure and start a new game
+## Read config file and start a new game
 def main():
 	os.environ['SDL_VIDEO_CENTERED'] = '1'
 	pygame.init()
-	winWidth = 1200
-	winHeight = 600
-	backgroundColor = pygame.color.Color("lightblue")
-	backgroundImage = None
-	framerate = 144 # frames per second
-	gravity = 0.1 # change in vertical speed per frame (acts on ball and players)
-	bounceCoefficient = 0.98
-	bounceCoefficientPlayer = 0.98
-	bounceCoefficientNet = 0.75
-	playerToBallMomentumTransfer = 0.12 # percentage of a player's velocity that gets transferred to the ball on contact
-	playerToBallHorizontalBoost = 1.03 # extra boost to the x-velocity of the ball on contact with player
-	netHeight = 100
-	netWidth = 20
-	netColor = pygame.color.Color("black")
-	insultsEnabled = False
-	fourPlayer = False
 
-	playerSpeed = 5 # maximum change in position (# pixels) per frame
-	playerAccel = 5 # change in velocity per frame
-	playerJump = 5 # immediate upward velocity (pixels per frame) on jump
-	playerRadius = 56
-	ballRadius = 24
-	ballColor = pygame.color.Color("darkgreen")
+	config = configparser.ConfigParser(allow_no_value = True)
+	config.read('settings.ini')
+
+	winWidth = config.getint('Settings', 'winWidth')
+	winHeight = config.getint('Settings', 'winHeight')
+	backgroundColor = pygame.color.Color(config['Settings']['backgroundColor'])
+	backgroundImage = config['Settings']['backgroundImage']
+	framerate = config.getint('Settings', 'framerate') # frames per second
+	gravity = config.getfloat('Settings', 'gravity') # change in vertical speed per frame (acts on ball and players)
+	bounceCoefficient = config.getfloat('Settings', 'bounceCoefficient')
+	bounceCoefficientPlayer = config.getfloat('Settings', 'bounceCoefficientPlayer')
+	bounceCoefficientNet = config.getfloat('Settings', 'bounceCoefficientNet')
+	playerToBallMomentumTransfer = config.getfloat('Settings', 'playerToBallMomentumTransfer') # percentage of a player's velocity that gets transferred to the ball on contact
+	playerToBallHorizontalBoost = config.getfloat('Settings', 'playerToBallHorizontalBoost') # extra boost to the x-velocity of the ball on contact with player
+	netHeight = config.getint('Settings', 'netHeight')
+	netWidth = config.getint('Settings', 'netWidth')
+	netColor = pygame.color.Color(config['Settings']['netColor'])
+	insultsEnabled = config.getboolean('Settings', 'insultsEnabled')
+	fourPlayer = config.getboolean('Settings', 'fourPlayer')
+
+	playerSpeed = config.getint('Settings', 'playerSpeed') # maximum change in position (# pixels) per frame
+	playerAccel = config.getint('Settings', 'playerAccel') # change in velocity per frame
+	playerJump = config.getint('Settings', 'playerJump') # immediate upward velocity (pixels per frame) on jump
+	playerRadius = config.getint('Settings', 'playerRadius')
+	ballRadius = config.getint('Settings', 'ballRadius')
+	ballColor = pygame.color.Color(config['Settings']['ballColor'])
 
 	# Set up XInput devices
 	p1XInput = None
@@ -71,13 +75,13 @@ def main():
 		[pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k], p4XInput, p4Message)
 
 	# 1v1
-	team1 = [p1] # controls: [W, A, D]
-	team2 = [p2] # controls: [UP, LEFT, RIGHT]
+	team1 = [p1] # controls: [W A S D]
+	team2 = [p2] # controls: [Arrow Keys]
 
 	# 2v2
 	if fourPlayer == True:
-		team1.append(p3) # controls: [T, F, H]
-		team2.append(p4) # controls: [I, J, L]
+		team1.append(p3) # controls: [T F G H]
+		team2.append(p4) # controls: [I J K L]
 
 	ball = Ball(ballRadius, ballColor)
 

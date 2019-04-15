@@ -118,10 +118,10 @@ class Game:
 	def getInputFromPlayers(self):
 		
 		keys = pygame.key.get_pressed()
-
 		
 		if keys[pygame.K_LCTRL] and keys[pygame.K_r]:
 			self.resetPositions()
+			
 		for player in self.team1 + self.team2:
 			player.handleInput(keys)
 
