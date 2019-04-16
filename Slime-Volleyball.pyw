@@ -5,7 +5,6 @@ import configparser, os, pygame
 from Game import Game
 from Player import Player
 from Ball import Ball
-from xinput import *
 
 ## Read config file and start a new game
 def main():
@@ -39,40 +38,22 @@ def main():
 	ballRadius = config.getint('Settings', 'ballRadius')
 	ballColor = pygame.color.Color(config['Settings']['ballColor'])
 
-	# Set up XInput devices
-	p1XInput = None
-	p2XInput = None
-	p3XInput = None
-	p4XInput = None
-	p1Message = "[W A S D]"
-	p2Message = "[Arrow Keys]"
-	p3Message = "[T F G H]"
-	p4Message = "[I J K L]"
-	controllers = XInputJoystick.enumerate_devices()
-	if len(controllers) > 0:
-		p1XInput = controllers[0]
-		p1Message = "[Controller 1]"
-	if len(controllers) > 1:
-		p2XInput = controllers[1]
-		p1Message = "[Controller 2]"
-	if len(controllers) > 2:
-		p3XInput = controllers[2]
-		p1Message = "[Controller 3]"
-	if len(controllers) > 3:
-		p4XInput = controllers[3]
-		p1Message = "[Controller 4]"
+	p1Messages = ["[W A S D]", "Controller 1"]
+	p2Messages = ["[Arrow Keys]", "Controller 2"]
+	p3Messages = ["[T F G H]", "Controller 3"]
+	p4Messages = ["[I J K L]", "Controller 4"]
 
 	if playerRadius == ballRadius * 2:
 		playerRadius += 1
 
 	p1 = Player("Blue", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("darkblue"), 
-		[pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_s], p1XInput, p1Message)
+		[pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_s], p1Messages)
 	p2 = Player("Red", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("darkred"), 
-		[pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN], p2XInput, p2Message)
+		[pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN], p2Messages)
 	p3 = Player("Pink", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("purple"), 
-		[pygame.K_t, pygame.K_f, pygame.K_h, pygame.K_g], p3XInput, p3Message)
+		[pygame.K_t, pygame.K_f, pygame.K_h, pygame.K_g], p3Messages)
 	p4 = Player("Yellow", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("orange"), 
-		[pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k], p4XInput, p4Message)
+		[pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k], p4Messages)
 
 	# 1v1
 	team1 = [p1] # controls: [W A S D]

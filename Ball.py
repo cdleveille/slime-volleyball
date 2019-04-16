@@ -1,8 +1,7 @@
 ## Chris Leveille
 ## April 2019
 
-import pygame
-import pygame.gfxdraw
+import pygame, pygame.gfxdraw
 
 class Ball():
 

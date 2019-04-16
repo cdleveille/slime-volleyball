@@ -1,8 +1,10 @@
 ## Chris Leveille
 ## April 2019
 
-import pygame, math, random
-import pygame.gfxdraw
+import pygame, pygame.gfxdraw, math, random
+from sys import platform
+if platform == "win32":
+	from xinput import *
 
 class Game:
 
@@ -62,20 +64,11 @@ class Game:
 
 		while (gameOn == True):
 
-			# Quit game if window is closed
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-					gameOn = False
+			self.hideMessages(messageTimeoutFrameCount)
 
-			# Hide the game messages after 3 sec
-			if self.frameCount >= messageTimeoutFrameCount:
-				self.message = ""
-				self.subMessage = ""
-				players = self.team1 + self.team2
-				for i, player in enumerate(players):
-					players[i].message = ""
+			self.checkForXInputDevices()
 
-			self.getInputFromPlayers()
+			gameOn = self.getInputFromPlayers()
 
 			self.updatePositionOfGameObjects()
 
@@ -85,12 +78,10 @@ class Game:
 
 			self.draw()
 
-			if self.frameCount < messageTimeoutFrameCount:
-				self.frameCount += 1
+			self.frameCount += 1
 
 			clock.tick(self.framerate)
 
-			# Process event queue
 			pygame.event.pump()
 
 	## Reset each game object to its starting position
@@ -113,17 +104,52 @@ class Game:
 		self.ball.y = self.winHeight * (1 / 3)
 		self.ball.xv = 0
 		self.ball.yv = 0
+		self.pointStartFrameCount = self.frameCount
+
+	# Hide the game messages after the specified number of seconds
+	def hideMessages(self, messageTimeoutFrameCount):
+		players = self.team1 + self.team2
+		for i, player in enumerate(players):
+			if self.frameCount - players[i].messageStartFrame >= messageTimeoutFrameCount:
+				players[i].displayMessage = ""
+		if self.frameCount - self.pointStartFrameCount >= messageTimeoutFrameCount:
+			self.message = ""
+			self.subMessage = ""
+
+	## Check if any new controllers have been connected
+	def checkForXInputDevices(self):
+		if platform == "win32":
+			controllers = XInputJoystick.enumerate_devices()
+			if len(controllers) > 0 and len(self.team1) > 0:
+				if self.team1[0].xinput is None:
+					self.team1[0].setXInput(controllers[0], self.frameCount)
+			if len(controllers) > 1 and len(self.team2) > 0:
+				if self.team2[0].xinput is None:
+					self.team2[0].setXInput(controllers[1], self.frameCount)
+			if len(controllers) > 2 and len(self.team1) > 1:
+				if self.team1[1].xinput is None:
+					self.team1[1].setXInput(controllers[2], self.frameCount)
+			if len(controllers) > 3 and len(self.team2) > 1:
+				if self.team2[1].xinput is None:
+					self.team2[1].setXInput(controllers[3], self.frameCount)
 
 	## Check for input from each player
 	def getInputFromPlayers(self):
-		
+
 		keys = pygame.key.get_pressed()
-		
-		if keys[pygame.K_LCTRL] and keys[pygame.K_r]:
-			self.resetPositions()
-			
+
+		events = pygame.event.get()
+		for event in events:
+			if event.type == pygame.QUIT:
+				return False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_r and keys[pygame.K_LCTRL]:
+					self.resetPositions()
+
 		for player in self.team1 + self.team2:
-			player.handleInput(keys)
+			player.handleInput(keys, self.frameCount)
+
+		return True
 
 	## Update the position of the ball and each player
 	def updatePositionOfGameObjects(self):
@@ -170,8 +196,15 @@ class Game:
 			if self.ballContactsCircle(player.x, player.y, player.radius) == True:
 				if abs(self.ball.yv) < 3:
 					self.ball.x, self.ball.y = self.getBallContactsCirclePosition(player.x, player.y, player.radius)
+				elif player.xinput is not None:
+					player.frameMarker = self.frameCount
+					player.xinput.set_vibration(1.0, 1.0)
 				(self.ball.xv, self.ball.yv) = self.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallHorizontalBoost)
-				break
+			
+			if player.xinput is not None:
+				if self.frameCount - player.frameMarker >= self.framerate / 15.0:
+					player.xinput.set_vibration(0.0, 0.0)
+
 
 		# Ball contacts floor
 		if self.ball.y > self.winHeight - self.ball.radius:
@@ -194,9 +227,11 @@ class Game:
 
 			# Pause briefly before starting a new rally
 			self.draw()
+			for player in self.team1 + self.team2:
+				if player.xinput is not None:
+					player.xinput.set_vibration(0.0, 0.0)
 			pygame.time.delay(500)
 			self.resetPositions()
-			self.frameCount = 0
 
 		# Ball contacts wall
 		if self.ball.x - self.ball.radius < 1:

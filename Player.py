@@ -1,14 +1,13 @@
 ## Chris Leveille
 ## April 2019
 
-import pygame, math
-import pygame.gfxdraw
+import pygame, pygame.gfxdraw, math
 from PIL import Image, ImageDraw
 
 class Player():
 
 	## Create new player
-	def __init__(self, name, radius, speed, accel, jump, color, keyInputs, xinput, message):
+	def __init__(self, name, radius, speed, accel, jump, color, keyInputs, messages):
 		
 		self.x = 0
 		self.y = 0
@@ -24,52 +23,65 @@ class Player():
 		self.eyeX = self.radius / 2
 		self.eyeY = self.radius * (3 / 5)
 		self.pupilOffsetRatio = self.radius / 10
-		self.message = message
+		self.messages = messages
+		self.displayMessage = messages[0]
 		self.messageFont = pygame.font.Font(None, 24)
+		self.messageStartFrame = 0
 		self.image = self.initPlayerBody()
+		self.frameMarker = 0
 		self.jumpInput = keyInputs[0]
 		self.leftInput = keyInputs[1]
 		self.rightInput = keyInputs[2]
 		self.slowInput = keyInputs[3]
-		self.xinput = xinput
+		self.xinput = None
+		if self.xinput is not None:
+			self.displayMessage = self.messages[1]
 
 	## Update movement properties based on the immediate inputs
-	def handleInput(self, keys):
+	def handleInput(self, keys, currentFrame):
 
-		# Handle XInput events
+		# Handle XInput device input
 		if self.xinput is not None:
 
-			self.xinput.dispatch_events()
-
-			@self.xinput.event
-			def on_button(button, pressed):
-
-				# When the player jumps, disable jumping until landed
-				if button == 13 and pressed == 1 and self.jumpEnabled == True:
-					self.yv = -self.jump
-					self.jumpEnabled = False
-
-			stickPct = 2 * self.xinput.pollLeftStick()
-			if stickPct > 0:
-				self.xv += self.accel
-			elif stickPct < 0:
-				self.xv -= self.accel
+			# Poll the controller's left analog stick for movement input
+			stickPct = 2 * self.xinput.pollLeftStick(0.1)
+			if stickPct == -2:
+				self.xinput = None
+				self.displayMessage = self.messages[0]
+				self.messageStartFrame = currentFrame
 			else:
-				if self.xv < 0:
+				if stickPct > 0:
 					self.xv += self.accel
-					if self.xv > 0:
-						self.xv = 0
-				elif self.xv > 0:
+				elif stickPct < 0:
 					self.xv -= self.accel
+				else:
 					if self.xv < 0:
-						self.xv = 0
+						self.xv += self.accel
+						if self.xv > 0:
+							self.xv = 0
+					elif self.xv > 0:
+						self.xv -= self.accel
+						if self.xv < 0:
+							self.xv = 0
 
-			# Enforce the player's maximum speed (based on how far the stick is tilted)
-			if abs(self.xv) > abs(self.speed * stickPct):
-				self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
+				# Poll the controller's A-button for jump input
+				jump = self.xinput.pollButtonA()
+				if jump == -1:
+					self.xinput = None
+					self.displayMessage = self.messages[0]
+					self.messageStartFrame = currentFrame
+				else:
+					if self.xinput.pollButtonA() == 1 and self.jumpEnabled == True:
+						self.yv = -self.jump
+						self.jumpEnabled = False
 
+					# Enforce the player's maximum speed (based on how far the stick is tilted)
+					if abs(self.xv) > abs(self.speed * stickPct):
+						self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
+
+		# Handle keyboard input
 		else:
-			# Accelerate/decelerate the player according to keyboard input
+
 			if keys[self.leftInput] and keys[self.rightInput]:
 				if self.xv < 0:
 					self.xv += self.accel
@@ -93,7 +105,6 @@ class Player():
 					if self.xv < 0:
 						self.xv = 0
 
-			# When the player jumps, disable jumping until landed
 			if keys[self.jumpInput] and self.jumpEnabled == True:
 				self.yv = -self.jump
 				self.jumpEnabled = False
@@ -105,6 +116,12 @@ class Player():
 			# Halve the player's horizontal velocity if the 'slow' input is used
 				if keys[self.slowInput]:
 					self.xv = self.xv / 2
+
+	## Initialize XInput controller device
+	def setXInput(self, device, messageStartFrame):
+		self.xinput = device
+		self.displayMessage = self.messages[1]
+		self.messageStartFrame = messageStartFrame
 
 	## Calculate the amount to shift the pupil from the center of the eye based on the location of the ball
 	def getPupilOffset(self, ball, pupilX):
@@ -223,7 +240,7 @@ class Player():
 	## Draw the message shown above the player
 	def drawMessage(self, gameWin):
 		
-		messageLabel = self.messageFont.render(self.message, True, pygame.color.Color("black"))
+		messageLabel = self.messageFont.render(self.displayMessage, True, pygame.color.Color("black"))
 		messageLabelRect = messageLabel.get_rect(center = (self.x, self.y - self.radius - 20))
 		gameWin.blit(messageLabel, messageLabelRect)
 

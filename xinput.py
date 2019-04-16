@@ -13,9 +13,7 @@ Only req is Pyglet 1.2alpha1 or higher:
 pip install --upgrade http://pyglet.googlecode.com/archive/tip.zip 
 """
 
-import ctypes
-import sys
-import time
+import ctypes, sys, time
 from operator import itemgetter, attrgetter
 from itertools import count, starmap
 from pyglet import event
@@ -205,7 +203,7 @@ class XInputJoystick(event.EventDispatcher):
     def handle_changed_state(self, state):
         "Dispatch various events as a result of the state changing"
         #self.dispatch_event('on_state_changed', state)
-        self.dispatch_axis_events(state)
+        #self.dispatch_axis_events(state)
         self.dispatch_button_events(state)
 
     def dispatch_axis_events(self, state):
@@ -240,23 +238,22 @@ class XInputJoystick(event.EventDispatcher):
     def dispatch_button_event(self, changed, number, pressed):
         self.dispatch_event('on_button', number, pressed)
 
-    def pollLeftStick(self):
+    def pollLeftStick(self, deadzone):
         state = self.get_state()
-        axis_fields = dict(XINPUT_GAMEPAD._fields_)
-        axis_fields.pop('buttons')
-        for axis, type in list(axis_fields.items()):
-            new_val = getattr(state.gamepad, axis)
-            data_size = ctypes.sizeof(type)
-            new_val = self.translate(new_val, data_size)
-
-            if abs(new_val) > 0.08 and axis == 'l_thumb_x':
-                return new_val
+        if not state:
+            return -1
+        val = getattr(state.gamepad, "l_thumb_x")
+        val = self.translate(val, 2)
+        if abs(val) > deadzone:
+                return val
         return 0.0
 
     def pollButtonA(self):
         state = self.get_state()
-        fields = dict(XINPUT_GAMEPAD._fields_)
-        buttons = fields.pop('buttons')
+        if not state:
+            return -1
+        buttons_state = get_bit_values(state.gamepad.buttons, 16)
+        return buttons_state[3]
 
 
 list(map(XInputJoystick.register_event_type, [
