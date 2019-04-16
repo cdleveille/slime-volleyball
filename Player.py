@@ -34,54 +34,16 @@ class Player():
 		self.rightInput = keyInputs[2]
 		self.slowInput = keyInputs[3]
 		self.xinput = None
-		if self.xinput is not None:
-			self.displayMessage = self.messages[1]
 
 	## Update movement properties based on the immediate inputs
 	def handleInput(self, keys, currentFrame):
 
-		# Handle XInput device input
+		# Get XInput device input
 		if self.xinput is not None:
-
-			# Poll the controller's left analog stick for movement input
-			stickPct = 2 * self.xinput.pollLeftStick(0.1)
-			if stickPct == -2:
-				self.xinput = None
-				self.displayMessage = self.messages[0]
-				self.messageStartFrame = currentFrame
-			else:
-				if stickPct > 0:
-					self.xv += self.accel
-				elif stickPct < 0:
-					self.xv -= self.accel
-				else:
-					if self.xv < 0:
-						self.xv += self.accel
-						if self.xv > 0:
-							self.xv = 0
-					elif self.xv > 0:
-						self.xv -= self.accel
-						if self.xv < 0:
-							self.xv = 0
-
-				# Poll the controller's A-button for jump input
-				jump = self.xinput.pollButtonA()
-				if jump == -1:
-					self.xinput = None
-					self.displayMessage = self.messages[0]
-					self.messageStartFrame = currentFrame
-				else:
-					if self.xinput.pollButtonA() == 1 and self.jumpEnabled == True:
-						self.yv = -self.jump
-						self.jumpEnabled = False
-
-					# Enforce the player's maximum speed (based on how far the stick is tilted)
-					if abs(self.xv) > abs(self.speed * stickPct):
-						self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
+			self.pollForXInput(currentFrame)
 
 		# Handle keyboard input
 		else:
-
 			if keys[self.leftInput] and keys[self.rightInput]:
 				if self.xv < 0:
 					self.xv += self.accel
@@ -109,13 +71,51 @@ class Player():
 				self.yv = -self.jump
 				self.jumpEnabled = False
 
-			# Enforce the player's maximum speed
+			# Enforce the player's maximum horizontal speed
 			if abs(self.xv) > self.speed:
 				self.xv = self.speed * (self.xv / abs(self.xv))
 
 			# Halve the player's horizontal velocity if the 'slow' input is used
 				if keys[self.slowInput]:
 					self.xv = self.xv / 2
+
+	# Handle XInput device input
+	def pollForXInput(self, currentFrame):
+
+		# Poll the controller's left analog stick for movement input
+		stickPct = self.xinput.pollLeftStick(0.1)
+
+		# Poll the controller's A-button for jump input
+		jump = self.xinput.pollButtonA()
+
+		# Disconnect the controller if it does not have a pulse
+		if not stickPct or not jump:
+			self.xinput = None
+			self.displayMessage = self.messages[0]
+			self.messageStartFrame = currentFrame
+			return
+
+		if stickPct > 0:
+			self.xv += self.accel
+		elif stickPct < 0:
+			self.xv -= self.accel
+		else:
+			if self.xv < 0:
+				self.xv += self.accel
+				if self.xv > 0:
+					self.xv = 0
+			elif self.xv > 0:
+				self.xv -= self.accel
+				if self.xv < 0:
+					self.xv = 0
+		
+		if self.xinput.pollButtonA() == 1 and self.jumpEnabled == True:
+			self.yv = -self.jump
+			self.jumpEnabled = False
+
+		# Enforce the player's maximum horizontal speed (based on how far the stick is tilted)
+		if abs(self.xv) > abs(self.speed * stickPct):
+			self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
 
 	## Initialize XInput controller device
 	def setXInput(self, device, messageStartFrame):

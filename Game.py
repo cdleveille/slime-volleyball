@@ -8,7 +8,7 @@ if platform == "win32":
 
 class Game:
 
-	## Create new game
+	## Create new game (initialize configurable fields)
 	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, framerate, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
 					playerToBallMomentumTransfer, playerToBallHorizontalBoost, insultsEnabled, netHeight, netWidth, netColor, team1, team2, ball):
 		
@@ -31,7 +31,7 @@ class Game:
 		self.team2 = team2
 		self.ball = ball
 
-	## Start the game
+	## Start the game (initialize non-configurable fields)
 	def startGame(self):
 		pygame.display.set_icon(pygame.image.load('assets/slime.ico'))
 		pygame.display.set_caption("Slime Volleyball")
@@ -55,7 +55,7 @@ class Game:
 		self.resetPositions()
 		self.gameLoop()
 
-	## Main game logic flow executed each frame
+	## Main game logic executed each frame
 	def gameLoop(self):
 		
 		gameOn = True
@@ -79,9 +79,7 @@ class Game:
 			self.draw()
 
 			self.frameCount += 1
-
 			clock.tick(self.framerate)
-
 			pygame.event.pump()
 
 	## Reset each game object to its starting position
@@ -120,26 +118,21 @@ class Game:
 	def checkForXInputDevices(self):
 		if platform == "win32":
 			controllers = XInputJoystick.enumerate_devices()
-			if len(controllers) > 0 and len(self.team1) > 0:
-				if self.team1[0].xinput is None:
-					self.team1[0].setXInput(controllers[0], self.frameCount)
-			if len(controllers) > 1 and len(self.team2) > 0:
-				if self.team2[0].xinput is None:
-					self.team2[0].setXInput(controllers[1], self.frameCount)
-			if len(controllers) > 2 and len(self.team1) > 1:
-				if self.team1[1].xinput is None:
-					self.team1[1].setXInput(controllers[2], self.frameCount)
-			if len(controllers) > 3 and len(self.team2) > 1:
-				if self.team2[1].xinput is None:
-					self.team2[1].setXInput(controllers[3], self.frameCount)
+			if self.team1[0].xinput is None and len(controllers) > 0 and len(self.team1) > 0:
+				self.team1[0].setXInput(controllers[0], self.frameCount)
+			if self.team2[0].xinput is None and len(controllers) > 1 and len(self.team2) > 0:
+				self.team2[0].setXInput(controllers[1], self.frameCount)
+			if self.team1[1].xinput is None and len(controllers) > 2 and len(self.team1) > 1:
+				self.team1[1].setXInput(controllers[2], self.frameCount)
+			if self.team2[1].xinput is None and len(controllers) > 3 and len(self.team2) > 1:
+				self.team2[1].setXInput(controllers[3], self.frameCount)
 
 	## Check for input from each player
 	def getInputFromPlayers(self):
 
 		keys = pygame.key.get_pressed()
 
-		events = pygame.event.get()
-		for event in events:
+		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				return False
 			if event.type == pygame.KEYDOWN:
@@ -201,6 +194,7 @@ class Game:
 					player.xinput.set_vibration(1.0, 1.0)
 				(self.ball.xv, self.ball.yv) = self.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, self.bounceCoefficientPlayer, self.playerToBallHorizontalBoost)
 			
+			# Deactivate XInput controller vibration several frames after the ball contacts a player
 			if player.xinput is not None:
 				if self.frameCount - player.frameMarker >= self.framerate / 15.0:
 					player.xinput.set_vibration(0.0, 0.0)
@@ -225,7 +219,7 @@ class Game:
 				if (self.insultsEnabled == True):
 					self.subMessage = self.getInsultMessage(self.team1)
 
-			# Pause briefly before starting a new rally
+			# Pause briefly before starting a new point
 			self.draw()
 			for player in self.team1 + self.team2:
 				if player.xinput is not None:

@@ -50,22 +50,6 @@ xinput = ctypes.windll.xinput1_4
 # xinput1_2, xinput1_1 (32-bit Vista SP1)
 # xinput1_3 (64-bit Vista SP1)
 
-
-def struct_dict(struct):
-	"""
-	take a ctypes.Structure and return its field/value pairs
-	as a dict.
-
-	>>> 'buttons' in struct_dict(XINPUT_GAMEPAD)
-	True
-	>>> struct_dict(XINPUT_GAMEPAD)['buttons'].__class__.__name__
-	'CField'
-	"""
-	get_pair = lambda field_type: (
-		field_type[0], getattr(struct, field_type[0]))
-	return dict(list(map(get_pair, struct._fields_)))
-
-
 def get_bit_values(number, size=32):
 	"""
 	Get bit values as a list for a given number
@@ -175,16 +159,16 @@ class XInputJoystick():
 	def pollLeftStick(self, deadzone):
 		state = self.get_state()
 		if not state:
-			return -1
+			return None
 		val = getattr(state.gamepad, "l_thumb_x")
 		val = self.translate(val, 2)
 		if abs(val) > deadzone:
-				return val
+				return val * 2
 		return 0.0
 
 	def pollButtonA(self):
 		state = self.get_state()
 		if not state:
-			return -1
+			return None
 		buttons_state = get_bit_values(state.gamepad.buttons, 16)
 		return buttons_state[3]
