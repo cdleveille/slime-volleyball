@@ -17,7 +17,7 @@ class Player():
 		self.name = name
 		self.radius = radius
 		self.speed = speed
-		self.accel = 5
+		self.accel = accel
 		self.jump = jump
 		self.jumpEnabled = True
 		self.eyeX = self.radius / 2
