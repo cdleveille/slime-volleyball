@@ -7,7 +7,7 @@
 4. Run Slime-Volleyball.pyw
 
 **Play from EXE (Windows):**
-- Go to the [Releases](https://github.com/cdleveille/Slime-Volleyball/releases) tab and download the latest version
+- Go to [Releases](https://github.com/cdleveille/Slime-Volleyball/releases) and download the latest version
 
 **Keyboard Controls:**
 - Player 1 (Team 1): [W A S D]  
