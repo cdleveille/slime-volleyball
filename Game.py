@@ -33,18 +33,19 @@ class Game:
 
 	## Start the game (initialize non-configurable fields)
 	def startGame(self):
+
 		pygame.display.set_icon(pygame.image.load('assets/slime.ico'))
 		pygame.display.set_caption("Slime Volleyball")
 		self.gameWin = pygame.display.set_mode((self.winWidth, self.winHeight))
 		self.team1Score = 0
 		self.team2Score = 0
-		self.scoreFont = scoreFont = pygame.font.Font(None, 48)
+		self.scoreFont = scoreFont = pygame.font.Font(None, 52)
 		self.messageFont = pygame.font.Font(None, 42)
 		self.subMessageFont = pygame.font.Font(None, 24)
 		self.messageColor = pygame.color.Color("black")
 		self.message = "Game On!"
+		self.subMessage = ""
 		self.insultsUsedAlready = []
-		self.subMessage = "May the slimiest Slime win."
 		self.frameCount = 0
 
 		if bool(random.getrandbits(1)) == True:
@@ -64,7 +65,7 @@ class Game:
 
 		while (gameOn == True):
 
-			self.hideMessages(messageTimeoutFrameCount)
+			self.hideMessagesOnTimeout(messageTimeoutFrameCount)
 
 			self.checkForXInputDevices()
 
@@ -104,8 +105,9 @@ class Game:
 		self.ball.yv = 0
 		self.pointStartFrameCount = self.frameCount
 
-	# Hide the game messages after the specified number of seconds
-	def hideMessages(self, messageTimeoutFrameCount):
+	# Hide the game messages after they time out
+	def hideMessagesOnTimeout(self, messageTimeoutFrameCount):
+
 		players = self.team1 + self.team2
 		for i, player in enumerate(players):
 			if self.frameCount - players[i].messageStartFrame >= messageTimeoutFrameCount:
@@ -116,16 +118,21 @@ class Game:
 
 	## Check if any new controllers have been connected
 	def checkForXInputDevices(self):
+
 		if platform == "win32":
 			controllers = XInputJoystick.enumerate_devices()
-			if self.team1[0].xinput is None and len(controllers) > 0 and len(self.team1) > 0:
-				self.team1[0].setXInput(controllers[0], self.frameCount)
-			if self.team2[0].xinput is None and len(controllers) > 1 and len(self.team2) > 0:
-				self.team2[0].setXInput(controllers[1], self.frameCount)
-			if self.team1[1].xinput is None and len(controllers) > 2 and len(self.team1) > 1:
-				self.team1[1].setXInput(controllers[2], self.frameCount)
-			if self.team2[1].xinput is None and len(controllers) > 3 and len(self.team2) > 1:
-				self.team2[1].setXInput(controllers[3], self.frameCount)
+			if len(controllers) > 0 and len(self.team1) > 0:
+				if self.team1[0].xinput is None:
+					self.team1[0].setXInput(controllers[0], self.frameCount)
+			if len(controllers) > 1 and len(self.team2) > 0:
+				if self.team2[0].xinput is None:
+					self.team2[0].setXInput(controllers[1], self.frameCount)
+			if len(controllers) > 2 and len(self.team1) > 1:
+				if self.team1[1].xinput is None:
+					self.team1[1].setXInput(controllers[2], self.frameCount)
+			if len(controllers) > 3 and len(self.team2) > 1:
+				if self.team2[1].xinput is None:
+					self.team2[1].setXInput(controllers[3], self.frameCount)
 
 	## Check for input from each player
 	def getInputFromPlayers(self):
@@ -136,6 +143,8 @@ class Game:
 			if event.type == pygame.QUIT:
 				return False
 			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_q and keys[pygame.K_LCTRL]:
+					return False
 				if event.key == pygame.K_r and keys[pygame.K_LCTRL]:
 					self.resetPositions()
 
@@ -187,7 +196,7 @@ class Game:
 		# Ball contacts player
 		for player in self.team1 + self.team2:
 			if self.ballContactsCircle(player.x, player.y, player.radius) == True:
-				if abs(self.ball.yv) < 3:
+				if abs(self.ball.yv - player.yv) < 3:
 					self.ball.x, self.ball.y = self.getBallContactsCirclePosition(player.x, player.y, player.radius)
 				elif player.xinput is not None:
 					player.frameMarker = self.frameCount
@@ -198,7 +207,6 @@ class Game:
 			if player.xinput is not None:
 				if self.frameCount - player.frameMarker >= self.framerate / 15.0:
 					player.xinput.set_vibration(0.0, 0.0)
-
 
 		# Ball contacts floor
 		if self.ball.y > self.winHeight - self.ball.radius:
@@ -273,11 +281,11 @@ class Game:
 
 		# Draw players
 		if len(self.team1 + self.team2) > 2 or self.backgroundImage is not None:
-			drawPillowInd = True
+			drawPillow = True
 		else:
-			drawPillowInd = False
+			drawPillow = False
 		for player in self.team1 + self.team2:
-			player.draw(self.gameWin, self.backgroundColor, self.ball, drawPillowInd)
+			player.draw(self.gameWin, self.backgroundColor, self.ball, drawPillow)
 
 		# Draw ball
 		self.ball.draw(self.gameWin)
@@ -294,6 +302,7 @@ class Game:
 
 	## Calculate the rebound velocity vector of the ball after contacting a circle of the given dimensions
 	def getBallContactsCircleVelocity(self, circleX, circleY, circleXV, circleYV, bounceCoefficient, xvBoost):
+
 		ballSpeed = math.sqrt((self.ball.xv ** 2) + (self.ball.yv ** 2))
 		xDiff = -(self.ball.x - circleX)
 		yDiff = -(self.ball.y - circleY)
@@ -335,6 +344,7 @@ class Game:
 
 	## Calculate the position of the ball around the arc of the circle of the given dimensions it is currently contacting
 	def getBallContactsCirclePosition(self, circleX, circleY, circleRadius):
+
 		combinedRadius = self.ball.radius + circleRadius
 		xDiff = -(self.ball.x - circleX)
 		yDiff = -(self.ball.y - circleY)

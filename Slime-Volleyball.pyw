@@ -14,6 +14,7 @@ def main():
 	config = configparser.ConfigParser(allow_no_value = True)
 	config.read('settings.ini')
 
+	fourPlayer = config.getboolean('Settings', 'fourPlayer')
 	winWidth = config.getint('Settings', 'winWidth')
 	winHeight = config.getint('Settings', 'winHeight')
 	backgroundColor = pygame.color.Color(config['Settings']['backgroundColor'])
@@ -29,7 +30,6 @@ def main():
 	netWidth = config.getint('Settings', 'netWidth')
 	netColor = pygame.color.Color(config['Settings']['netColor'])
 	insultsEnabled = config.getboolean('Settings', 'insultsEnabled')
-	fourPlayer = config.getboolean('Settings', 'fourPlayer')
 
 	playerSpeed = config.getint('Settings', 'playerSpeed') # maximum change in position (# pixels) per frame
 	playerAccel = config.getint('Settings', 'playerAccel') # change in velocity per frame
@@ -38,22 +38,33 @@ def main():
 	ballRadius = config.getint('Settings', 'ballRadius')
 	ballColor = pygame.color.Color(config['Settings']['ballColor'])
 
-	p1Messages = ["[W A S D]", "Controller 1"]
-	p2Messages = ["[Arrow Keys]", "Controller 2"]
-	p3Messages = ["[T F G H]", "Controller 3"]
-	p4Messages = ["[I J K L]", "Controller 4"]
-
 	if playerRadius == ballRadius * 2:
 		playerRadius += 1
 
-	p1 = Player("Blue", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("darkblue"), 
-		[pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_s], p1Messages)
-	p2 = Player("Red", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("darkred"), 
-		[pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN], p2Messages)
-	p3 = Player("Pink", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("purple"), 
-		[pygame.K_t, pygame.K_f, pygame.K_h, pygame.K_g], p3Messages)
-	p4 = Player("Yellow", playerRadius, playerSpeed, playerAccel, playerJump, pygame.color.Color("orange"), 
-		[pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k], p4Messages)
+	p1Name = config['Settings']['p1Name']
+	p2Name = config['Settings']['p2Name']
+	p3Name = config['Settings']['p3Name']
+	p4Name = config['Settings']['p4Name']
+
+	p1Color = pygame.color.Color(config['Settings']['p1Color'])
+	p2Color = pygame.color.Color(config['Settings']['p2Color'])
+	p3Color = pygame.color.Color(config['Settings']['p3Color'])
+	p4Color = pygame.color.Color(config['Settings']['p4Color'])
+
+	p1Keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_s]
+	p2Keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN]
+	p3Keys = [pygame.K_t, pygame.K_f, pygame.K_h, pygame.K_g]
+	p4Keys = [pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k]
+
+	p1Messages = ["[W A S D]", "[Controller 1]"]
+	p2Messages = ["[Arrow Keys]", "[Controller 2]"]
+	p3Messages = ["[T F G H]", "[Controller 3]"]
+	p4Messages = ["[I J K L]", "[Controller 4]"]
+
+	p1 = Player(p1Name, playerRadius, playerSpeed, playerAccel, playerJump, p1Color, p1Keys, p1Messages)
+	p2 = Player(p2Name, playerRadius, playerSpeed, playerAccel, playerJump, p2Color, p2Keys, p2Messages)
+	p3 = Player(p3Name, playerRadius, playerSpeed, playerAccel, playerJump, p3Color, p3Keys, p3Messages)
+	p4 = Player(p4Name, playerRadius, playerSpeed, playerAccel, playerJump, p4Color, p4Keys, p4Messages)
 
 	# 1v1
 	team1 = [p1] # controls: [W A S D]

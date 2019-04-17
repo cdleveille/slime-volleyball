@@ -79,7 +79,7 @@ class Player():
 				if keys[self.slowInput]:
 					self.xv = self.xv / 2
 
-	# Handle XInput device input
+	## Handle XInput device input
 	def pollForXInput(self, currentFrame):
 
 		# Poll the controller's left analog stick for movement input
@@ -89,7 +89,7 @@ class Player():
 		jump = self.xinput.pollButtonA()
 
 		# Disconnect the controller if it does not have a pulse
-		if not stickPct or not jump:
+		if stickPct is None or jump is None:
 			self.xinput = None
 			self.displayMessage = self.messages[0]
 			self.messageStartFrame = currentFrame
@@ -119,6 +119,7 @@ class Player():
 
 	## Initialize XInput controller device
 	def setXInput(self, device, messageStartFrame):
+		
 		self.xinput = device
 		self.displayMessage = self.messages[1]
 		self.messageStartFrame = messageStartFrame
@@ -172,6 +173,7 @@ class Player():
 
 	## Initialize the Pillow semi-circle used for the player's body
 	def initPlayerBody(self):
+
 		pil_size = self.radius * 2
 		pil_image = Image.new("RGBA", (pil_size, pil_size))
 		pil_draw = ImageDraw.Draw(pil_image)
@@ -190,6 +192,7 @@ class Player():
 
 	## Draw the player's body (anti-aliased and more resource efficient, but draws rectangle hiding bottom of player)
 	def drawBody(self, gameWin, backgroundColor):
+
 		self.drawAACircle(gameWin, int(self.x), int(self.y), int(self.radius), self.color)
 		pygame.draw.rect(gameWin, backgroundColor, (self.x - self.radius, self.y, self.radius * 2 + 1, self.radius + 1))
 		pygame.gfxdraw.line(gameWin, int(self.x - self.radius), int(self.y), int(self.x + self.radius), int(self.y), pygame.color.Color("black"))

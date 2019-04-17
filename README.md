@@ -4,7 +4,6 @@
 3. Install packages:
     - [Pygame](https://www.pygame.org/wiki/GettingStarted/): ```pip install Pygame```
     - [Pillow](https://pypi.org/project/Pillow/): ```pip install Pillow```
-    - [Pyglet](https://pyglet.readthedocs.io/en/pyglet-1.3-maintenance/programming_guide/installation.html): ```pip install Pyglet```
 4. Run Slime-Volleyball.pyw
 
 **Play from EXE (Windows):**
@@ -16,7 +15,6 @@
 - Player 3 (Team 1): [T F G H]  
 - Player 4 (Team 2): [I J K L]  
 
-**XInput Controls:**  
-*XInput controllers are supported, and will override keyboard inputs for as many players as there are controllers connected when the game is launched.*  
-- Move: Left analog stick  
-- Jump: A  
+**XInput Controls (Windows):**
+- Move: [Left analog stick]  
+- Jump: [A]  
