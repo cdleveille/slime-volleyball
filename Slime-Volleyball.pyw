@@ -8,6 +8,7 @@ from Ball import Ball
 
 ## Read config file and start a new game
 def main():
+
 	os.environ['SDL_VIDEO_CENTERED'] = '1'
 	pygame.init()
 
@@ -51,10 +52,10 @@ def main():
 	p3Color = pygame.color.Color(config['Settings']['p3Color'])
 	p4Color = pygame.color.Color(config['Settings']['p4Color'])
 
-	p1Keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_s]
-	p2Keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN]
-	p3Keys = [pygame.K_t, pygame.K_f, pygame.K_h, pygame.K_g]
-	p4Keys = [pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k]
+	p1Keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_q, pygame.K_e]
+	p2Keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_RCTRL, pygame.K_RSHIFT]
+	p3Keys = [pygame.K_t, pygame.K_f, pygame.K_h, pygame.K_g, pygame.K_r, pygame.K_y]
+	p4Keys = [pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k, pygame.K_u, pygame.K_o]
 
 	p1Messages = ["[W A S D]", "[Controller 1]"]
 	p2Messages = ["[Arrow Keys]", "[Controller 2]"]

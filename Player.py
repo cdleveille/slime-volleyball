@@ -13,13 +13,20 @@ class Player():
 		self.y = 0
 		self.xv = 0
 		self.yv = 0
+		self.powerX = 0
+		self.powerY = 0
+		self.powerWidth = 100
+		self.powerPct = 0.00
+		self.powerActive = False
 		self.color = color
 		self.name = name
 		self.radius = radius
+		self.normalRadius = radius
 		self.speed = speed
 		self.accel = accel
 		self.jump = jump
 		self.jumpEnabled = True
+		self.alwaysJump = False
 		self.eyeX = self.radius / 2
 		self.eyeY = self.radius * (3 / 5)
 		self.pupilOffsetRatio = self.radius / 10
@@ -27,12 +34,14 @@ class Player():
 		self.displayMessage = messages[0]
 		self.messageFont = pygame.font.Font(None, 24)
 		self.messageStartFrame = 0
-		self.image = self.initPlayerBody()
+		self.pillow = self.initPlayerPillowBody()
 		self.frameMarker = 0
 		self.jumpInput = keyInputs[0]
 		self.leftInput = keyInputs[1]
 		self.rightInput = keyInputs[2]
 		self.slowInput = keyInputs[3]
+		self.power1Input = keyInputs[4]
+		self.power2Input = keyInputs[5]
 		self.xinput = None
 
 	## Update movement properties based on the immediate inputs
@@ -67,9 +76,17 @@ class Player():
 					if self.xv < 0:
 						self.xv = 0
 
-			if keys[self.jumpInput] and self.jumpEnabled == True:
+			if keys[self.jumpInput] and (self.jumpEnabled == True or self.alwaysJump == True):
 				self.yv = -self.jump
 				self.jumpEnabled = False
+
+			if keys[self.power1Input] and self.powerPct == 1.0 and self.powerActive == False:
+				self.powerActive = True
+				self.activatePower1()
+
+			if keys[self.power2Input] and self.powerPct == 1.0 and self.powerActive == False:
+				self.powerActive = True
+				self.activatePower2()
 
 			# Enforce the player's maximum horizontal speed
 			if abs(self.xv) > self.speed:
@@ -82,14 +99,14 @@ class Player():
 	## Handle XInput device input
 	def pollForXInput(self, currentFrame):
 
-		# Poll the controller's left analog stick for movement input
+		# Poll the controller for input
 		stickPct = self.xinput.pollLeftStick(0.1)
-
-		# Poll the controller's A-button for jump input
-		jump = self.xinput.pollButtonA()
+		jump = self.xinput.pollButton(3)
+		power1 = self.xinput.pollButton(1)
+		power2 = self.xinput.pollButton(2)
 
 		# Disconnect the controller if it does not have a pulse
-		if stickPct is None or jump is None:
+		if stickPct is None or jump is None or power1 is None or power2 is None:
 			self.xinput = None
 			self.displayMessage = self.messages[0]
 			self.messageStartFrame = currentFrame
@@ -109,9 +126,17 @@ class Player():
 				if self.xv < 0:
 					self.xv = 0
 		
-		if self.xinput.pollButtonA() == 1 and self.jumpEnabled == True:
+		if jump == 1 and (self.jumpEnabled == True or self.alwaysJump == True):
 			self.yv = -self.jump
 			self.jumpEnabled = False
+
+		if power1 == 1 and self.powerPct == 1.0 and self.powerActive == False:
+			self.powerActive = True
+			self.activatePower1()
+
+		if power2 == 1 and self.powerPct == 1.0 and self.powerActive == False:
+			self.powerActive = True
+			self.activatePower2()
 
 		# Enforce the player's maximum horizontal speed (based on how far the stick is tilted)
 		if abs(self.xv) > abs(self.speed * stickPct):
@@ -119,7 +144,7 @@ class Player():
 
 	## Initialize XInput controller device
 	def setXInput(self, device, messageStartFrame):
-		
+
 		self.xinput = device
 		self.displayMessage = self.messages[1]
 		self.messageStartFrame = messageStartFrame
@@ -172,13 +197,39 @@ class Player():
 		self.y += self.yv
 
 	## Initialize the Pillow semi-circle used for the player's body
-	def initPlayerBody(self):
+	def initPlayerPillowBody(self):
 
 		pil_size = self.radius * 2
 		pil_image = Image.new("RGBA", (pil_size, pil_size))
 		pil_draw = ImageDraw.Draw(pil_image)
 		pil_draw.pieslice((0, 0, pil_size, pil_size), 180, 0, fill = (self.color.r, self.color.g, self.color.b))
 		return pygame.image.fromstring(pil_image.tobytes(), pil_image.size, pil_image.mode)
+
+	## Add the given amount to the player's power bar percentage
+	def incrementPowerPct(self, amt):
+
+		self.powerPct += amt
+		if self.powerPct > 1.0:
+			self.powerPct = 1.0
+		if self.powerPct < 0.0:
+			self.powerPct = 0.0
+			self.powerActive = False
+			self.deactivatePowers()
+
+	## Make the player 50% bigger
+	def activatePower1(self):
+		self.radius = int(self.radius * (3 / 2))
+		self.pillow = self.initPlayerPillowBody()
+
+	## Allow the player to jump at all times
+	def activatePower2(self):
+		self.alwaysJump = True
+
+	## Return the player to its original state
+	def deactivatePowers(self):
+		self.radius = self.normalRadius
+		self.pillow = self.initPlayerPillowBody()
+		self.alwaysJump = False
 
 	## Draw the player
 	def draw(self, gameWin, backgroundColor, ball, pillowDrawInd):
@@ -189,6 +240,7 @@ class Player():
 			self.drawBody(gameWin, backgroundColor)
 		self.drawEye(gameWin, ball)
 		self.drawMessage(gameWin)
+		self.drawPowerBar(gameWin)
 
 	## Draw the player's body (anti-aliased and more resource efficient, but draws rectangle hiding bottom of player)
 	def drawBody(self, gameWin, backgroundColor):
@@ -200,8 +252,8 @@ class Player():
 	## Draw the player's body (does not draw rectangle hiding bottom of player, but is more resource intensive)
 	def drawBodyPillow(self, gameWin):
 		
-		image_rect = self.image.get_rect(center = (self.x, self.y))
-		gameWin.blit(self.image, image_rect)
+		image_rect = self.pillow.get_rect(center = (self.x, self.y))
+		gameWin.blit(self.pillow, image_rect)
 		pygame.gfxdraw.arc(gameWin, int(self.x), int(self.y), int(self.radius), 180, 360, pygame.color.Color("black"))
 		pygame.gfxdraw.line(gameWin, int(self.x - self.radius), int(self.y), int(self.x + self.radius), int(self.y), pygame.color.Color("black"))
 
@@ -218,6 +270,10 @@ class Player():
 				eyeRadius = self.radius / 4
 		else:
 			eyeRadius = self.radius / 4
+
+		self.eyeX = self.radius / 2
+		self.eyeY = self.radius * (3 / 5)
+		self.pupilOffsetRatio = self.radius / 10
 
 		if (self.x < pygame.display.get_surface().get_width() / 2):
 			self.drawAACircle(gameWin, int(self.x + self.eyeX), int(self.y - self.eyeY), int(eyeRadius), pygame.color.Color("lightgray"))
@@ -252,3 +308,12 @@ class Player():
 		
 		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), pygame.color.Color("black"))
+
+	def drawPowerBar(self, gameWin):
+		pygame.draw.rect(gameWin, pygame.color.Color("lightgray"), [self.powerX, self.powerY, self.powerWidth, 12])
+		pygame.draw.rect(gameWin, pygame.color.Color("black"), [self.powerX, self.powerY, self.powerWidth, 12], 1)
+		if self.powerPct > 0:
+			pygame.draw.rect(gameWin, self.color, [self.powerX + 1, self.powerY + 1, int(self.powerPct * (self.powerWidth - 2)), 10])
+		if self.powerPct >= 1.0:
+			self.powerPct = 1.0
+			pygame.draw.rect(gameWin, pygame.color.Color("yellow"), [self.powerX - 3, self.powerY - 3, self.powerWidth + 6, 18], 3)

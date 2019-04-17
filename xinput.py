@@ -9,8 +9,8 @@ under the MIT licence terms
 
 Upgraded to Python 3
 Modified to add deadzones, reduce noise, and support vibration
-Only req is Pyglet 1.2alpha1 or higher:
-pip install --upgrade http://pyglet.googlecode.com/archive/tip.zip 
+
+Modified by Chris Leveille for Slime-Volleyball
 """
 
 import ctypes, sys, time
@@ -73,7 +73,6 @@ def get_bit_values(number, size=32):
 	# 0-pad the most significant bit
 	res = [0] * (size - len(res)) + res
 	return res
-
 
 def gen_bit_values(number):
 	"""
@@ -166,9 +165,9 @@ class XInputJoystick():
 				return val * 2
 		return 0.0
 
-	def pollButtonA(self):
+	def pollButton(self, buttonNum):
 		state = self.get_state()
 		if not state:
 			return None
 		buttons_state = get_bit_values(state.gamepad.buttons, 16)
-		return buttons_state[3]
+		return buttons_state[buttonNum]

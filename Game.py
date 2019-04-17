@@ -77,6 +77,8 @@ class Game:
 
 			self.handleCollisions()
 
+			self.updatePowerBars()
+
 			self.draw()
 
 			self.frameCount += 1
@@ -90,11 +92,15 @@ class Game:
 			self.team1[i].x = ((self.winWidth / 2) / (len(self.team1) + 1)) * (i + 1)
 			self.team1[i].y = self.winHeight
 			self.team1[i].yv = 0
+			self.team1[i].powerX = ((self.winWidth / 2) / (len(self.team1) + 1)) * (i + 1) - (self.team1[i].powerWidth / 2)
+			self.team1[i].powerY = 5
 
 		for i, player in enumerate(self.team2):
 			self.team2[i].x = (((self.winWidth / 2) / (len(self.team2) + 1)) * (i + 1)) + (self.winWidth / 2)
 			self.team2[i].y = self.winHeight
 			self.team2[i].yv = 0
+			self.team2[i].powerX = (((self.winWidth / 2) / (len(self.team2) + 1)) * (i + 1)) + (self.winWidth / 2) - (self.team2[i].powerWidth / 2)
+			self.team2[i].powerY = 5
 
 		index = random.randint(0, len(self.teamToServe) - 1)
 		for i, player in enumerate(self.teamToServe):
@@ -219,6 +225,9 @@ class Game:
 				self.message = self.getTeamScoreMessage(self.team1)
 				if (self.insultsEnabled == True):
 					self.subMessage = self.getInsultMessage(self.team2)
+				for i, player in enumerate(self.team1):
+					if self.team1[i].powerActive == False:
+						self.team1[i].incrementPowerPct(0.15)
 			# Team 2 scores a point
 			else:
 				self.teamToServe = self.team2
@@ -226,6 +235,9 @@ class Game:
 				self.message = self.getTeamScoreMessage(self.team2)
 				if (self.insultsEnabled == True):
 					self.subMessage = self.getInsultMessage(self.team1)
+				for i, player in enumerate(self.team2):
+					if self.team2[i].powerActive == False:
+						self.team2[i].incrementPowerPct(0.15)
 
 			# Pause briefly before starting a new point
 			self.draw()
@@ -253,6 +265,15 @@ class Game:
 			elif abs((self.ball.x - self.ball.radius) - (self.winWidth / 2)) <= self.netWidth / 2:
 				self.ball.x = (self.winWidth / 2) + (self.netWidth / 2) + self.ball.radius
 				self.ball.xv = -self.ball.xv * self.bounceCoefficientNet
+
+	def updatePowerBars(self):
+
+		players = self.team1 + self.team2
+		for i, player in enumerate(players):
+			if players[i].powerActive == False and players[i].powerPct < 1:
+				players[i].incrementPowerPct(0.0003)
+			elif players[i].powerActive == True and players[i].powerPct > 0:
+				players[i].incrementPowerPct(-0.0012)
 
 	## Draw the current state of the game
 	def draw(self):
