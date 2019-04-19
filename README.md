@@ -2,7 +2,7 @@
 1. Download or clone repository
 2. Install [Python 3](https://www.python.org/downloads/)
 3. Install packages:
-    - [Pygame](https://www.pygame.org/wiki/GettingStarted/): ```pip install Pygame```
+    - [pygame](https://www.pygame.org/wiki/GettingStarted/): ```pip install pygame```
     - [Pillow](https://pypi.org/project/Pillow/): ```pip install Pillow```
 4. Run Slime-Volleyball.pyw
 

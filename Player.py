@@ -106,7 +106,7 @@ class Player():
 		power2 = self.xinput.pollButton(2)
 
 		# Disconnect the controller if it does not have a pulse
-		if stickPct is None or jump is None or power1 is None or power2 is None:
+		if None in [stickPct, jump, power1, power2]:
 			self.xinput = None
 			self.displayMessage = self.messages[0]
 			self.messageStartFrame = currentFrame
