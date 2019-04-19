@@ -8,10 +8,11 @@ if platform == "win32":
 
 class Game:
 
-	## Create new game (initialize configurable fields)
-	def __init__(self, winWidth, winHeight, backgroundColor, backgroundImage, framerate, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
+	## Create new game
+	def __init__(self, scoreLimit, winWidth, winHeight, backgroundColor, backgroundImage, framerate, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
 					playerToBallMomentumTransfer, playerToBallHorizontalBoost, insultsEnabled, netHeight, netWidth, netColor, team1, team2, ball):
 		
+		self.scoreLimit = scoreLimit
 		self.winWidth = winWidth
 		self.winHeight = winHeight
 		self.backgroundColor = backgroundColor
@@ -30,23 +31,30 @@ class Game:
 		self.team1 = team1
 		self.team2 = team2
 		self.ball = ball
-
-	## Start the game (initialize non-configurable fields)
-	def startGame(self):
-
 		pygame.display.set_icon(pygame.image.load('assets/slime.ico'))
 		pygame.display.set_caption("Slime Volleyball")
 		self.gameWin = pygame.display.set_mode((self.winWidth, self.winHeight))
+
+	## Start the game
+	def startGame(self, firstRun):
+
 		self.team1Score = 0
 		self.team2Score = 0
 		self.scoreFont = scoreFont = pygame.font.Font(None, 52)
 		self.messageFont = pygame.font.Font(None, 42)
 		self.subMessageFont = pygame.font.Font(None, 24)
 		self.messageColor = pygame.color.Color("black")
-		self.message = "Game On!"
-		self.subMessage = ""
+		self.message = "GAME ON"
+		self.subMessage = "First to " + str(self.scoreLimit) + " points wins!"
+		self.playerMessageFlashRate = self.framerate / 2
+		self.playerMessageFlashFrameMarker = 0
+		self.drawPlayerMessage = False
+		self.playerPowerBarOutlineFlashRate = self.framerate / 4
+		self.playerPowerBarOutlineFrameMarker = 0
+		self.drawPlayerPowerBarOutline = True
 		self.insultsUsedAlready = []
 		self.frameCount = 0
+		self.gameOver = False
 
 		if bool(random.getrandbits(1)) == True:
 			self.teamToServe = self.team1
@@ -54,13 +62,16 @@ class Game:
 			self.teamToServe = self.team2
 
 		self.resetPositions()
-		self.gameLoop()
+		self.resetPlayerPowers()
+
+		if firstRun == True:
+			self.gameLoop()
 
 	## Main game logic executed each frame
 	def gameLoop(self):
 		
 		gameOn = True
-		messageTimeoutFrameCount = self.framerate * 3
+		messageTimeoutFrameCount = self.framerate * 4
 		clock = pygame.time.Clock()
 
 		while (gameOn == True):
@@ -93,15 +104,14 @@ class Game:
 			self.team1[i].y = self.winHeight
 			self.team1[i].yv = 0
 			self.team1[i].powerX = ((self.winWidth / 2) / (len(self.team1) + 1)) * (i + 1) - (self.team1[i].powerWidth / 2)
-			self.team1[i].powerY = 5
+			self.team1[i].powerY = 13
 
 		for i, player in enumerate(self.team2):
 			self.team2[i].x = (((self.winWidth / 2) / (len(self.team2) + 1)) * (i + 1)) + (self.winWidth / 2)
 			self.team2[i].y = self.winHeight
 			self.team2[i].yv = 0
 			self.team2[i].powerX = (((self.winWidth / 2) / (len(self.team2) + 1)) * (i + 1)) + (self.winWidth / 2) - (self.team2[i].powerWidth / 2)
-			self.team2[i].powerY = 5
-
+			self.team2[i].powerY = 13
 		index = random.randint(0, len(self.teamToServe) - 1)
 		for i, player in enumerate(self.teamToServe):
 			if i == index:
@@ -118,7 +128,7 @@ class Game:
 		for i, player in enumerate(players):
 			if self.frameCount - players[i].messageStartFrame >= messageTimeoutFrameCount:
 				players[i].displayMessage = ""
-		if self.frameCount - self.pointStartFrameCount >= messageTimeoutFrameCount:
+		if self.frameCount - self.pointStartFrameCount >= messageTimeoutFrameCount and self.gameOver == False:
 			self.message = ""
 			self.subMessage = ""
 
@@ -153,6 +163,8 @@ class Game:
 					return False
 				if event.key == pygame.K_r and keys[pygame.K_LCTRL]:
 					self.resetPositions()
+				if event.key == pygame.K_RETURN and self.gameOver == True:
+					self.startGame(False)
 
 		for player in self.team1 + self.team2:
 			player.handleInput(keys, self.frameCount)
@@ -221,23 +233,35 @@ class Game:
 			# Team 1 scores a point
 			if self.ball.x > self.winWidth / 2:
 				self.teamToServe = self.team1
-				self.team1Score += 1
-				self.message = self.getTeamScoreMessage(self.team1)
-				if (self.insultsEnabled == True):
-					self.subMessage = self.getInsultMessage(self.team2)
 				for i, player in enumerate(self.team1):
 					if self.team1[i].powerActive == False:
 						self.team1[i].incrementPowerPct(0.15)
+				if self.gameOver == False:
+					self.team1Score += 1
+					if self.team1Score == self.scoreLimit:
+						self.message = self.getGameOverMessage(self.team1)
+					else:
+						self.message = self.getTeamScoreMessage(self.team1)
+						if (self.insultsEnabled == True):
+							self.subMessage = self.getInsultMessage(self.team2)
+						else:
+							self.subMessage = ""
 			# Team 2 scores a point
 			else:
 				self.teamToServe = self.team2
-				self.team2Score += 1
-				self.message = self.getTeamScoreMessage(self.team2)
-				if (self.insultsEnabled == True):
-					self.subMessage = self.getInsultMessage(self.team1)
 				for i, player in enumerate(self.team2):
 					if self.team2[i].powerActive == False:
 						self.team2[i].incrementPowerPct(0.15)
+				if self.gameOver == False:
+					self.team2Score += 1
+					if self.team2Score == self.scoreLimit:
+						self.message = self.getGameOverMessage(self.team2)
+					else:
+						self.message = self.getTeamScoreMessage(self.team2)
+						if (self.insultsEnabled == True):
+							self.subMessage = self.getInsultMessage(self.team1)
+						else:
+							self.subMessage = ""
 
 			# Pause briefly before starting a new point
 			self.draw()
@@ -270,9 +294,9 @@ class Game:
 
 		players = self.team1 + self.team2
 		for i, player in enumerate(players):
-			if players[i].powerActive == False and players[i].powerPct < 1:
+			if player.powerActive == False and player.powerPct < 1:
 				players[i].incrementPowerPct(0.0003)
-			elif players[i].powerActive == True and players[i].powerPct > 0:
+			elif player.powerActive == True and player.powerPct > 0:
 				players[i].incrementPowerPct(-0.0012)
 
 	## Draw the current state of the game
@@ -280,20 +304,6 @@ class Game:
 
 		# Fill window with background color
 		self.gameWin.fill(self.backgroundColor)
-
-		# Draw messages
-		messageLabel = self.messageFont.render(self.message, True, self.messageColor)
-		messageLabelRect = messageLabel.get_rect(center = (self.winWidth / 2, 20))
-		self.gameWin.blit(messageLabel, messageLabelRect)
-		subMessageLabel = self.subMessageFont.render(self.subMessage, True, self.messageColor)
-		subMessageLabelRect = subMessageLabel.get_rect(center = (self.winWidth / 2, 50))
-		self.gameWin.blit(subMessageLabel, subMessageLabelRect)
-
-		# Draw scores
-		team1ScoreLabel = self.scoreFont.render(str(self.team1Score), True, self.messageColor)
-		self.gameWin.blit(team1ScoreLabel, (30, 5))
-		team2ScoreLabel = self.scoreFont.render(str(self.team2Score), True, self.messageColor)
-		self.gameWin.blit(team2ScoreLabel, (self.winWidth - 60, 5))
 
 		# Draw net
 		pygame.draw.rect(self.gameWin, self.netColor, (self.winWidth / 2 - (self.netWidth / 2), self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth + 1, self.netHeight))
@@ -305,8 +315,33 @@ class Game:
 			drawPillow = True
 		else:
 			drawPillow = False
+
+		if self.frameCount - self.playerMessageFlashRate >= self.playerMessageFlashFrameMarker:
+			self.drawPlayerMessage = not self.drawPlayerMessage
+			self.playerMessageFlashFrameMarker = self.frameCount
+
+		if self.frameCount - self.playerPowerBarOutlineFlashRate >= self.playerPowerBarOutlineFrameMarker:
+			self.drawPlayerPowerBarOutline = not self.drawPlayerPowerBarOutline
+			self.playerPowerBarOutlineFrameMarker = self.frameCount
+
 		for player in self.team1 + self.team2:
-			player.draw(self.gameWin, self.backgroundColor, self.ball, drawPillow)
+			player.draw(self.gameWin, self.backgroundColor, self.ball, drawPillow, self.drawPlayerMessage, self.drawPlayerPowerBarOutline)
+
+		# Draw messages
+		messageLabel = self.messageFont.render(self.message, True, self.messageColor)
+		messageLabelRect = messageLabel.get_rect(center = (self.winWidth / 2, 20))
+		self.gameWin.blit(messageLabel, messageLabelRect)
+
+		if self.gameOver == False or (self.gameOver == True and self.drawPlayerMessage == True):
+			subMessageLabel = self.subMessageFont.render(self.subMessage, True, self.messageColor)
+			subMessageLabelRect = subMessageLabel.get_rect(center = (self.winWidth / 2, 50))
+			self.gameWin.blit(subMessageLabel, subMessageLabelRect)
+
+		# Draw scores
+		team1ScoreLabel = self.scoreFont.render(str(self.team1Score), True, self.messageColor)
+		self.gameWin.blit(team1ScoreLabel, (30, 5))
+		team2ScoreLabel = self.scoreFont.render(str(self.team2Score), True, self.messageColor)
+		self.gameWin.blit(team2ScoreLabel, (self.winWidth - 60, 5))
 
 		# Draw ball
 		self.ball.draw(self.gameWin)
@@ -434,3 +469,22 @@ class Game:
 			return insult.replace("@", loser)
 		else:
 			return ""
+
+	## Declare the winner when the score limit is reached
+	def getGameOverMessage(self, winningTeam):
+
+		self.gameOver = True
+
+		self.subMessage = "Press ENTER to start new game"
+
+		if len(winningTeam) == 1:
+			return winningTeam[0].name + " Wins!"
+		else:
+			return winningTeam[0].name + "/" + winningTeam[1].name + " Wins!"
+
+	## Reset player powers for a new game
+	def resetPlayerPowers(self):
+		players = self.team1 + self.team2
+		for i, player in enumerate(players):
+			players[i].powerPct = 0.00
+			players[i].deactivatePowers()

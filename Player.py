@@ -15,7 +15,7 @@ class Player():
 		self.yv = 0
 		self.powerX = 0
 		self.powerY = 0
-		self.powerWidth = 100
+		self.powerWidth = 120
 		self.powerPct = 0.00
 		self.powerActive = False
 		self.color = color
@@ -131,11 +131,9 @@ class Player():
 			self.jumpEnabled = False
 
 		if power1 == 1 and self.powerPct == 1.0 and self.powerActive == False:
-			self.powerActive = True
 			self.activatePower1()
 
 		if power2 == 1 and self.powerPct == 1.0 and self.powerActive == False:
-			self.powerActive = True
 			self.activatePower2()
 
 		# Enforce the player's maximum horizontal speed (based on how far the stick is tilted)
@@ -213,34 +211,40 @@ class Player():
 			self.powerPct = 1.0
 		if self.powerPct < 0.0:
 			self.powerPct = 0.0
-			self.powerActive = False
 			self.deactivatePowers()
 
 	## Make the player 50% bigger
 	def activatePower1(self):
+		self.powerActive = True
 		self.radius = int(self.radius * (3 / 2))
 		self.pillow = self.initPlayerPillowBody()
 
 	## Allow the player to jump at all times
 	def activatePower2(self):
+		self.powerActive = True
 		self.alwaysJump = True
 
 	## Return the player to its original state
 	def deactivatePowers(self):
+		self.powerActive = False
 		self.radius = self.normalRadius
 		self.pillow = self.initPlayerPillowBody()
+		self.jumpEnabled = False
 		self.alwaysJump = False
 
 	## Draw the player
-	def draw(self, gameWin, backgroundColor, ball, pillowDrawInd):
+	def draw(self, gameWin, backgroundColor, ball, pillowDrawInd, drawMessage, drawPowerBarOutline):
 		
 		if (pillowDrawInd == True):
 			self.drawBodyPillow(gameWin)
 		else:
 			self.drawBody(gameWin, backgroundColor)
 		self.drawEye(gameWin, ball)
-		self.drawMessage(gameWin)
-		self.drawPowerBar(gameWin)
+
+		if drawMessage == True:
+			self.drawMessage(gameWin)
+
+		self.drawPowerBar(gameWin, drawPowerBarOutline)
 
 	## Draw the player's body (anti-aliased and more resource efficient, but draws rectangle hiding bottom of player)
 	def drawBody(self, gameWin, backgroundColor):
@@ -309,11 +313,13 @@ class Player():
 		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), pygame.color.Color("black"))
 
-	def drawPowerBar(self, gameWin):
+	def drawPowerBar(self, gameWin, drawPowerBarOutline):
 		pygame.draw.rect(gameWin, pygame.color.Color("lightgray"), [self.powerX, self.powerY, self.powerWidth, 12])
 		pygame.draw.rect(gameWin, pygame.color.Color("black"), [self.powerX, self.powerY, self.powerWidth, 12], 1)
 		if self.powerPct > 0:
 			pygame.draw.rect(gameWin, self.color, [self.powerX + 1, self.powerY + 1, int(self.powerPct * (self.powerWidth - 2)), 10])
-		if self.powerPct >= 1.0:
+		if self.powerPct >= 1.0 and self.powerActive == False:
 			self.powerPct = 1.0
+			pygame.draw.rect(gameWin, pygame.color.Color("yellow"), [self.powerX - 3, self.powerY - 3, self.powerWidth + 6, 18], 3)
+		elif drawPowerBarOutline == True and self.powerActive == True:
 			pygame.draw.rect(gameWin, pygame.color.Color("yellow"), [self.powerX - 3, self.powerY - 3, self.powerWidth + 6, 18], 3)

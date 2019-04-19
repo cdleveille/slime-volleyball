@@ -16,6 +16,7 @@ def main():
 	config.read('settings.ini')
 
 	fourPlayer = config.getboolean('Settings', 'fourPlayer')
+	scoreLimit = config.getint('Settings', 'scoreLimit')
 	winWidth = config.getint('Settings', 'winWidth')
 	winHeight = config.getint('Settings', 'winHeight')
 	backgroundColor = pygame.color.Color(config['Settings']['backgroundColor'])
@@ -53,7 +54,7 @@ def main():
 	p4Color = pygame.color.Color(config['Settings']['p4Color'])
 
 	p1Keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_q, pygame.K_e]
-	p2Keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_RCTRL, pygame.K_RSHIFT]
+	p2Keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_RSHIFT, pygame.K_RCTRL]
 	p3Keys = [pygame.K_t, pygame.K_f, pygame.K_h, pygame.K_g, pygame.K_r, pygame.K_y]
 	p4Keys = [pygame.K_i, pygame.K_j, pygame.K_l, pygame.K_k, pygame.K_u, pygame.K_o]
 
@@ -78,10 +79,10 @@ def main():
 
 	ball = Ball(ballRadius, ballColor)
 
-	game = Game(winWidth, winHeight, backgroundColor, backgroundImage, framerate, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
+	game = Game(scoreLimit, winWidth, winHeight, backgroundColor, backgroundImage, framerate, gravity, bounceCoefficient, bounceCoefficientPlayer, bounceCoefficientNet, 
 				playerToBallMomentumTransfer, playerToBallHorizontalBoost, insultsEnabled, netHeight, netWidth, netColor, team1, team2, ball)
 
-	game.startGame()
+	game.startGame(True)
 
 if __name__ == "__main__":
 	main()

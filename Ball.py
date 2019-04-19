@@ -39,14 +39,20 @@ class Ball():
 
 	# If the ball is off-screen, draw a marker indicating its horizontal location
 	def drawXInd (self, gameWin):
-
+		
 		if self.y - self.radius < -450:
-			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, 4, pygame.color.Color("black"))
+			radius =  4
 		elif self.y - self.radius < -350:
-			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, 5, pygame.color.Color("black"))
+			radius =  5
 		elif self.y - self.radius < -250:
-			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, 6, pygame.color.Color("black"))
+			radius =  6
 		elif self.y - self.radius < -150:
-			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, 7, pygame.color.Color("black"))
+			radius =  7
 		elif self.y - self.radius < -50:
-			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, 8, pygame.color.Color("black"))
+			radius =  8
+		else:
+			radius = 0
+
+		if radius > 0:
+			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, radius, pygame.color.Color("black"))
+			pygame.gfxdraw.aacircle(gameWin, int(self.x), 10, radius - 1, pygame.color.Color("black"))
