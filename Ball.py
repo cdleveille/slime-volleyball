@@ -16,7 +16,7 @@ class Ball():
 		self.color = color
 		self.radius = radius
 
-	## Update position properties given a gravity value
+	## Update the ball's position
 	def updatePosition(self, gravity):
 		
 		self.yv += gravity

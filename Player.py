@@ -209,23 +209,26 @@ class Player():
 		self.powerPct += amt
 		if self.powerPct > 1.0:
 			self.powerPct = 1.0
-		if self.powerPct < 0.0:
+		if self.powerPct <= 0.0:
 			self.powerPct = 0.0
 			self.deactivatePowers()
 
 	## Make the player 50% bigger
 	def activatePower1(self):
+		
 		self.powerActive = True
 		self.radius = int(self.radius * (3 / 2))
 		self.pillow = self.initPlayerPillowBody()
 
 	## Allow the player to jump at all times
 	def activatePower2(self):
+
 		self.powerActive = True
 		self.alwaysJump = True
 
 	## Return the player to its original state
 	def deactivatePowers(self):
+
 		self.powerActive = False
 		self.radius = self.normalRadius
 		self.pillow = self.initPlayerPillowBody()
@@ -313,7 +316,9 @@ class Player():
 		pygame.gfxdraw.filled_circle(gameWin, int(x), int(y), int(r), color)
 		pygame.gfxdraw.aacircle(gameWin, int(x), int(y), int(r), pygame.color.Color("black"))
 
+	## Draw the player's power bar at the top of the screen
 	def drawPowerBar(self, gameWin, drawPowerBarOutline):
+
 		pygame.draw.rect(gameWin, pygame.color.Color("lightgray"), [self.powerX, self.powerY, self.powerWidth, 12])
 		pygame.draw.rect(gameWin, pygame.color.Color("black"), [self.powerX, self.powerY, self.powerWidth, 12], 1)
 		if self.powerPct > 0:

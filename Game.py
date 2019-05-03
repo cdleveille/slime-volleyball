@@ -290,6 +290,7 @@ class Game:
 				self.ball.x = (self.winWidth / 2) + (self.netWidth / 2) + self.ball.radius
 				self.ball.xv = -self.ball.xv * self.bounceCoefficientNet
 
+	## Increment each player's power bar in the proper direction
 	def updatePowerBars(self):
 
 		players = self.team1 + self.team2
@@ -438,7 +439,7 @@ class Game:
 			yShift = combinedRadius * math.sin(math.radians(angle))
 		return (circleX + xShift, circleY + yShift)
 
-	## Return the message to display when a point is scored
+	## Get the message to display when a point is scored
 	def getTeamScoreMessage(self, team):
 
 		if len(team) == 1:
