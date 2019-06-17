@@ -3,6 +3,7 @@
 
 import pygame, pygame.gfxdraw, math, random
 from sys import platform
+from AI import AI
 if platform == "win32":
 	from xinput import *
 
@@ -55,6 +56,7 @@ class Game:
 		self.insultsUsedAlready = []
 		self.frameCount = 0
 		self.gameOver = False
+		self.AI = AI()
 
 		if bool(random.getrandbits(1)) == True:
 			self.teamToServe = self.team1

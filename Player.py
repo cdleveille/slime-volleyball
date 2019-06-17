@@ -2,7 +2,6 @@
 ## April 2019
 
 import pygame, pygame.gfxdraw, math
-from AI import AI
 from PIL import Image, ImageDraw
 
 class Player():
@@ -45,16 +44,16 @@ class Player():
 		self.power2Input = keyInputs[5]
 		self.xinput = None
 		self.isAI = isAI
-		self.AI = AI()
 
+	## Wrapper to call appropriate function for human or AI action
 	def getPlayerAction(self, keys, currentFrame, game):
 
 		if self.isAI == False:
 			self.handleInput(keys, currentFrame)
 		else:
-			self.getAIAction(game)
+			self.handleAI(game)
 
-		self.enforceMaxSpeed()
+		self.enforceMaxSpeed(keys)
 
 	## Update movement properties based on the immediate inputs
 	def handleInput(self, keys, currentFrame):
@@ -100,15 +99,15 @@ class Player():
 				self.powerActive = True
 				self.activatePower2()
 
-			# Halve the player's horizontal velocity if the 'slow' input is used
-			if keys[self.slowInput]:
-				self.xv = self.xv / 2
-
 	## Enforce the player's maximum horizontal speed
-	def enforceMaxSpeed(self):
+	def enforceMaxSpeed(self, keys):
 
 		if abs(self.xv) > self.speed:
 			self.xv = self.speed * (self.xv / abs(self.xv))
+
+		# Halve the player's horizontal velocity if the 'slow' input is used
+		if keys[self.slowInput]:
+			self.xv = self.xv / 2
 
 	## Handle XInput device input
 	def pollForXInput(self, currentFrame):
@@ -154,16 +153,26 @@ class Player():
 		if abs(self.xv) > abs(self.speed * stickPct):
 			self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
 
+	## Move the AI player based on the game state
+	def handleAI(self, game):
 
-	def getAIAction(self, game):
+		ballLandX = game.AI.predictBallLandingPosition(game)
 
-		ballLandX = self.AI.predictBallLandingPosition(game)
-
-		# Player on Team 1
+		# Player on Team 1...
 		if self.x < game.winWidth / 2:
-			if ballLandX < game.winWidth:
-				a = 1 #go to where ball will land
+			# Ball will land on Team 1 side...
+			if ballLandX < game.winWidth / 2:
+				# Go to just behind ball landing spot
+				if self.x < ballLandX - self.radius * 3 / 4:
+					self.xv += self.accel
+				elif self.x > ballLandX - self.radius * 3 / 4:
+					self.xv -= self.accel
+
+				if abs(self.x - (ballLandX - self.radius * 3 / 4)) < self.speed:
+					self.xv = 0
+			# Ball will land on Team 2 side...
 			else:
+				# Go to center of Team 1 side
 				if self.x < game.winWidth / 4:
 					self.xv += self.accel
 				elif self.x > game.winWidth / 4:
@@ -171,12 +180,22 @@ class Player():
 
 				if abs(self.x - game.winWidth / 4) < self.speed:
 					self.xv = 0
-		# Player on Team 2
+		# Player on Team 2...
 		else:
-			if ballLandX > game.winWidth:
-				a = 1 #go to where ball will land
+			# Ball will land on Team 2 side...
+			if ballLandX > game.winWidth / 2:
+				# Go to just behind ball landing spot
+				if self.x < ballLandX + self.radius * 3 / 4:
+					self.xv += self.accel
+				elif self.x > ballLandX + self.radius * 3 / 4:
+					self.xv -= self.accel
+
+				if abs(self.x - (ballLandX + self.radius * 3 / 4)) < self.speed:
+					self.xv = 0
+			# Ball will land on Team 1 side...
 			else:
-				if self.x < game.winWidth  * (3 / 4):
+				# Go to center of Team 2 side
+				if self.x < game.winWidth * (3 / 4):
 					self.xv += self.accel
 				elif self.x > game.winWidth * (3 / 4):
 					self.xv -= self.accel
@@ -288,7 +307,7 @@ class Player():
 			self.drawBody(gameWin, backgroundColor)
 		self.drawEye(gameWin, ball)
 
-		if drawMessage == True:
+		if drawMessage == True and self.isAI == False:
 			self.drawMessage(gameWin)
 
 		self.drawPowerBar(gameWin, drawPowerBarOutline)
