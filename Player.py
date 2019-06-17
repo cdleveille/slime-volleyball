@@ -2,12 +2,13 @@
 ## April 2019
 
 import pygame, pygame.gfxdraw, math
+from AI import AI
 from PIL import Image, ImageDraw
 
 class Player():
 
 	## Create new player
-	def __init__(self, name, radius, speed, accel, jump, color, keyInputs, messages):
+	def __init__(self, name, radius, speed, accel, jump, color, keyInputs, messages, isAI):
 		
 		self.x = 0
 		self.y = 0
@@ -43,6 +44,17 @@ class Player():
 		self.power1Input = keyInputs[4]
 		self.power2Input = keyInputs[5]
 		self.xinput = None
+		self.isAI = isAI
+		self.AI = AI()
+
+	def getPlayerAction(self, keys, currentFrame, game):
+
+		if self.isAI == False:
+			self.handleInput(keys, currentFrame)
+		else:
+			self.getAIAction(game)
+
+		self.enforceMaxSpeed()
 
 	## Update movement properties based on the immediate inputs
 	def handleInput(self, keys, currentFrame):
@@ -88,13 +100,15 @@ class Player():
 				self.powerActive = True
 				self.activatePower2()
 
-			# Enforce the player's maximum horizontal speed
-			if abs(self.xv) > self.speed:
-				self.xv = self.speed * (self.xv / abs(self.xv))
-
 			# Halve the player's horizontal velocity if the 'slow' input is used
-				if keys[self.slowInput]:
-					self.xv = self.xv / 2
+			if keys[self.slowInput]:
+				self.xv = self.xv / 2
+
+	## Enforce the player's maximum horizontal speed
+	def enforceMaxSpeed(self):
+
+		if abs(self.xv) > self.speed:
+			self.xv = self.speed * (self.xv / abs(self.xv))
 
 	## Handle XInput device input
 	def pollForXInput(self, currentFrame):
@@ -139,6 +153,36 @@ class Player():
 		# Enforce the player's maximum horizontal speed (based on how far the stick is tilted)
 		if abs(self.xv) > abs(self.speed * stickPct):
 			self.xv = abs(self.speed * stickPct) * (self.xv / abs(self.xv))
+
+
+	def getAIAction(self, game):
+
+		ballLandX = self.AI.predictBallLandingPosition(game)
+
+		# Player on Team 1
+		if self.x < game.winWidth / 2:
+			if ballLandX < game.winWidth:
+				a = 1 #go to where ball will land
+			else:
+				if self.x < game.winWidth / 4:
+					self.xv += self.accel
+				elif self.x > game.winWidth / 4:
+					self.xv -= self.accel
+
+				if abs(self.x - game.winWidth / 4) < self.speed:
+					self.xv = 0
+		# Player on Team 2
+		else:
+			if ballLandX > game.winWidth:
+				a = 1 #go to where ball will land
+			else:
+				if self.x < game.winWidth  * (3 / 4):
+					self.xv += self.accel
+				elif self.x > game.winWidth * (3 / 4):
+					self.xv -= self.accel
+
+				if abs(self.x - game.winWidth * (3 / 4)) < self.speed:
+					self.xv = 0
 
 	## Initialize XInput controller device
 	def setXInput(self, device, messageStartFrame):

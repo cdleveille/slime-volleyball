@@ -163,11 +163,15 @@ class Game:
 					return False
 				if event.key == pygame.K_r and keys[pygame.K_LCTRL]:
 					self.resetPositions()
+				if event.key == pygame.K_1:
+					self.team1[0].isAI = not self.team1[0].isAI
+				if event.key == pygame.K_2:
+					self.team2[0].isAI = not self.team2[0].isAI
 				if event.key == pygame.K_RETURN and self.gameOver == True:
 					self.startGame(False)
 
 		for player in self.team1 + self.team2:
-			player.handleInput(keys, self.frameCount)
+			player.getPlayerAction(keys, self.frameCount, self)
 
 		return True
 

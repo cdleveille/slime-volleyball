@@ -63,10 +63,15 @@ def main():
 	p3Messages = ["[T F G H]", "[Controller 3]"]
 	p4Messages = ["[I J K L]", "[Controller 4]"]
 
-	p1 = Player(p1Name, playerRadius, playerSpeed, playerAccel, playerJump, p1Color, p1Keys, p1Messages)
-	p2 = Player(p2Name, playerRadius, playerSpeed, playerAccel, playerJump, p2Color, p2Keys, p2Messages)
-	p3 = Player(p3Name, playerRadius, playerSpeed, playerAccel, playerJump, p3Color, p3Keys, p3Messages)
-	p4 = Player(p4Name, playerRadius, playerSpeed, playerAccel, playerJump, p4Color, p4Keys, p4Messages)
+	p1IsAI = False
+	p2IsAI = True
+	p3IsAI = False
+	p4IsAI = False
+
+	p1 = Player(p1Name, playerRadius, playerSpeed, playerAccel, playerJump, p1Color, p1Keys, p1Messages, p1IsAI)
+	p2 = Player(p2Name, playerRadius, playerSpeed, playerAccel, playerJump, p2Color, p2Keys, p2Messages, p2IsAI)
+	p3 = Player(p3Name, playerRadius, playerSpeed, playerAccel, playerJump, p3Color, p3Keys, p3Messages, p3IsAI)
+	p4 = Player(p4Name, playerRadius, playerSpeed, playerAccel, playerJump, p4Color, p4Keys, p4Messages, p4IsAI)
 
 	# 1v1
 	team1 = [p1] # controls: [W A S D]
