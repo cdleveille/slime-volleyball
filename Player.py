@@ -192,6 +192,12 @@ class Player():
 
 				if abs(self.x - (ballLandX + self.radius * 3 / 4)) < self.speed:
 					self.xv = 0
+
+				# Jump if ball is close to hitting floor and is not a line drive
+				if game.ball.yv > 0 and game.ball.y > game.winHeight - 2 * self.radius and self.jumpEnabled == True and abs(game.ball.xv < 6):
+					self.yv = -self.jump
+					self.jumpEnabled = False
+
 			# Ball will land on Team 1 side...
 			else:
 				# Go to center of Team 2 side
