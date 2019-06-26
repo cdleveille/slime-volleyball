@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "C:\\Users\\Chris\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe",
+    "python.linting.pylintArgs": [
+        "----extension-pkg-whitelist=1xml"
+        ]
+}
