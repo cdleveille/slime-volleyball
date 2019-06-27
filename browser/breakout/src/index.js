@@ -18,7 +18,6 @@ new InputHandler(paddle);
 paddle.draw(ctx);
 
 let lastTime = 0;
-
 function gameLoop(timestamp) {
 
     let deltaTime = timestamp - lastTime;
