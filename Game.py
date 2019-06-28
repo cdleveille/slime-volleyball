@@ -118,7 +118,7 @@ class Game:
 		for i, player in enumerate(self.teamToServe):
 			if i == index:
 				self.ball.x = player.x
-		self.ball.y = self.winHeight * (1 / 3)
+		self.ball.y = self.winHeight / 3
 		self.ball.xv = 0
 		self.ball.yv = 0
 		self.pointStartFrameCount = self.frameCount
@@ -286,7 +286,7 @@ class Game:
 			self.ball.xv = -self.ball.xv * self.bounceCoefficient
 
 		# Ball contacts net
-		if self.ballContactsCircle(self.winWidth /2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
+		if self.ballContactsCircle(self.winWidth / 2, self.winHeight - self.netHeight + (self.netWidth / 2), self.netWidth / 2) == True:
 				(self.ball.xv, self.ball.yv) = self.getBallContactsCircleVelocity(self.winWidth / 2, self.winHeight - self.netHeight + (self.netWidth / 2), 0, 0, self.bounceCoefficientNet, 1)
 		elif self.ball.y > self.winHeight - self.netHeight + self.netWidth:
 			if abs((self.winWidth / 2) - (self.ball.x + self.ball.radius)) <= self.netWidth / 2:
@@ -370,23 +370,16 @@ class Game:
 		xDiff = -(self.ball.x - circleX)
 		yDiff = -(self.ball.y - circleY)
 		if xDiff > 0:
-			if yDiff > 0:
-				angle = math.degrees(math.atan(yDiff / xDiff))
-				xSpeed = -ballSpeed * math.cos(math.radians(angle))
-				ySpeed = -ballSpeed * math.sin(math.radians(angle))
-			elif yDiff < 0:
-				angle = math.degrees(math.atan(yDiff / xDiff))
-				xSpeed = -ballSpeed * math.cos(math.radians(angle))
-				ySpeed = -ballSpeed * math.sin(math.radians(angle))
+			angle = math.degrees(math.atan(yDiff / xDiff))
+			xSpeed = -ballSpeed * math.cos(math.radians(angle))
+			ySpeed = -ballSpeed * math.sin(math.radians(angle))
 		elif xDiff < 0:
 			if yDiff > 0:
 				angle = 180 + math.degrees(math.atan(yDiff / xDiff))
-				xSpeed = -ballSpeed * math.cos(math.radians(angle))
-				ySpeed = -ballSpeed * math.sin(math.radians(angle))
 			elif yDiff < 0:
 				angle = -180 + math.degrees(math.atan(yDiff / xDiff))
-				xSpeed = -ballSpeed * math.cos(math.radians(angle))
-				ySpeed = -ballSpeed * math.sin(math.radians(angle))
+			xSpeed = -ballSpeed * math.cos(math.radians(angle))
+			ySpeed = -ballSpeed * math.sin(math.radians(angle))
 		elif xDiff == 0:
 			if yDiff > 0:
 				angle = -90
