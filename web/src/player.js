@@ -64,11 +64,11 @@ export default class Player {
 
     update(gravity, gameHeight, deltaTime) {
         if (this.y < gameHeight) {
-            this.yv += gravity;
+            this.yv += gravity * deltaTime;
         }
         
-        this.x += this.xv / deltaTime;
-        this.y += this.yv / deltaTime;
+        this.x += this.xv * deltaTime;
+        this.y += this.yv * deltaTime;
     }
 
     draw(ctx, gameWidth, gameHeight, ball) {

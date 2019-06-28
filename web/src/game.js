@@ -1,5 +1,6 @@
 export default class Game {
-    constructor(ctx, gameWidth, gameHeight, backgroundColor, p1, p2, ball, netWidth, netHeight, netColor, gravity, bounce, bounceNet) {
+    constructor(scoreLimit, ctx, gameWidth, gameHeight, backgroundColor, p1, p2, ball, netWidth, netHeight, netColor, gravity, bounce, bounceNet) {
+        this.scoreLimit = scoreLimit;
         this.ctx = ctx;
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
@@ -16,9 +17,17 @@ export default class Game {
         this.gravity = gravity;
         this.bounce = bounce;
         this.bounceNet = bounceNet;
+        this.gameOver = false;
+        this.isFrozen = false;
+        this.frozenAtTime;
     }
 
-    resetPositions() {
+    resetPositions(ballX) {
+        this.ball.x = ballX;
+        this.ball.y = this.gameHeight / 3;
+        this.ball.xv = 0;
+        this.ball.yv = 0;
+
         this.p1.x = this.gameWidth / 4;
         this.p1.y = this.gameHeight;
         this.p1.jumpEnabled = true;
@@ -26,10 +35,6 @@ export default class Game {
         this.p2.x = this.gameWidth * 3 / 4;
         this.p2.y = this.gameHeight;
         this.p2.jumpEnabled = true;
-
-        this.ball.y = this.gameHeight / 3;
-        this.ball.xv = 0;
-        this.ball.yv = 0;
     }
 
     handleCollisions() {
@@ -68,22 +73,37 @@ export default class Game {
         }
 
         // ball contacts floor
-        if (this.ball.y > this.gameHeight - this.ball.radius) {
+        if (this.ball.y >= this.gameHeight - this.ball.radius) {
+            this.ball.y = this.gameHeight - this.ball.radius
 
-            this.freeze(500);
-
-            this.ball.y = this.gameHeight - this.ball.radius;
-            this.ball.yv = -this.ball.yv * this.bounce;
-
-            if (this.ball.x < this.gameWidth / 2) {
-                this.p2Score++;
-                this.ball.x = this.gameWidth * 3 / 4;
-            } else {
-                this.p1Score++;
-                this.ball.x = this.gameWidth / 4;
+            if (!this.isFrozen) {
+                this.isFrozen = true;
+                this.frozenAtTime = this.timestamp();
+                
+                if (!this.gameOver) {
+                    if (this.ball.x < this.gameWidth / 2) {
+                        this.p2Score++;
+                    } else {
+                        this.p1Score++;
+                    }
+                }
+                if (this.p1Score == this.scoreLimit || this.p2Score == this.scoreLimit) {
+                    this.gameOver = true;
+                }
+            } else if (this.timestamp() - this.frozenAtTime >= 500) {
+                this.isFrozen = false;
+                var ballX;
+                if (this.ball.x < this.gameWidth / 2) {
+                    ballX = this.gameWidth * 3 / 4;
+                    
+                } else {
+                    ballX = this.gameWidth / 4;
+                }
+                this.resetPositions(ballX);
             }
 
-            this.resetPositions();
+            //this.ball.y = this.gameHeight - this.ball.radius;
+            //this.ball.yv = -this.ball.yv * this.bounce;
         }
 
         // ball contacts wall
@@ -209,11 +229,17 @@ export default class Game {
         while (new Date().getTime() < now + ms) {}
     }
 
-    update(deltaTime) {
-        this.ball.update(this.gravity, deltaTime);
-        this.p1.update(this.gravity, this.gameHeight, deltaTime);
-        this.p2.update(this.gravity, this.gameHeight, deltaTime);
+    timestamp() {
+        return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
+    }
 
+    update(deltaTime) {
+        if (!this.isFrozen) {
+            deltaTime = deltaTime * 200;
+            this.ball.update(this.gravity, deltaTime);
+            this.p1.update(this.gravity, this.gameHeight, deltaTime);
+            this.p2.update(this.gravity, this.gameHeight, deltaTime);
+        }
         this.handleCollisions();
     }
 
@@ -224,7 +250,7 @@ export default class Game {
         this.ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
 
         this.ctx.fillStyle = "#000000";
-        this.ctx.font = "48px Arial";
+        this.ctx.font = "42px Arial";
         this.ctx.fillText(this.p1Score, 30, 50);
         this.ctx.fillText(this.p2Score, this.gameWidth - 65, 50);
 

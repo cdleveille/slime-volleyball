@@ -20,8 +20,8 @@ export default class Ball {
             this.yv = this.maxV * (this.yv / Math.abs(this.yv));
         }
 
-        this.x += this.xv / deltaTime;
-        this.y += this.yv / deltaTime;
+        this.x += this.xv * deltaTime;
+        this.y += this.yv * deltaTime;
     }
 
     draw(ctx) {
