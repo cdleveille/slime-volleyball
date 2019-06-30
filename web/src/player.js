@@ -11,8 +11,8 @@ export default class Player {
         this.color = color;
         this.isAI = isAI;
 
-        this.x = 150;
-        this.y = 300;
+        this.x = 0;
+        this.y = 0;
         this.xv = 0;
         this.yv = 0;
         this.jumpHeldDown = false;

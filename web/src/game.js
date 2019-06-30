@@ -101,9 +101,6 @@ export default class Game {
                 }
                 this.resetPositions(ballX);
             }
-
-            //this.ball.y = this.gameHeight - this.ball.radius;
-            //this.ball.yv = -this.ball.yv * this.bounce;
         }
 
         // ball contacts wall
@@ -253,6 +250,12 @@ export default class Game {
         this.ctx.font = "42px Arial";
         this.ctx.fillText(this.p1Score, 30, 50);
         this.ctx.fillText(this.p2Score, this.gameWidth - 65, 50);
+
+        if (this.gameOver) {
+            this.ctx.fillStyle = "#000000";
+            this.ctx.font = "42px Arial";
+            this.ctx.fillText("Game Over!", this.gameWidth / 2 - 120, 50);
+        }
 
         this.ctx.fillStyle = this.netColor;
         this.ctx.fillRect(this.gameWidth / 2 - this.netWidth / 2, this.gameHeight - this.netHeight + this.netWidth / 2, this.netWidth, this.netHeight);

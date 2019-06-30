@@ -1,5 +1,6 @@
 // http-server -a localhost -p 8000 -c-1    http://localhost:8000/index.html
 // game loop:   https://codeincomplete.com/posts/javascript-game-foundations-the-game-loop/
+// resize:      https://stackoverflow.com/questions/1664785/resize-html5-canvas-to-fit-window
 
 import Ball from "/src/ball.js";
 import Player from "/src/player.js";
@@ -54,9 +55,5 @@ function frame() {
     last = now;
     requestAnimationFrame(frame);
 }
-
-// function timestamp() {
-//     return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
-// }
 
 requestAnimationFrame(frame);
