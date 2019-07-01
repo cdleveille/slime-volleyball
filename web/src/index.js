@@ -26,8 +26,10 @@ let scoreLimit = 3;
 let netWidth = 20;
 let netHeight = 100;
 let gravity = 0.1;
-let bounce = 0.98;
+let bounce = 0.99;
 let bounceNet = 0.75;
+
+resizeCanvas();
 
 let game = new Game(scoreLimit, ctx, canvas.width, canvas.height, "#ADD8E6", p1, p2, ball, netWidth, netHeight, "#000000", gravity, bounce, bounceNet);
 
@@ -39,7 +41,7 @@ if (Math.random() >= 0.5) {
 }
 game.resetPositions(ballX);
 
-var framerate = 144;
+var framerate = 500;
 var dt, now, last = game.timestamp(), step = 1 / framerate;
 
 function frame() {
@@ -51,9 +53,32 @@ function frame() {
         game.update(step);
     }
 
+    [canvas.width, canvas.height] = resizeCanvas();
+    game.resize(canvas.width, canvas.height);
+
     game.draw();
-    last = now;
+    last = now - (dt % step);
     requestAnimationFrame(frame);
+}
+
+function frame2() {
+    [canvas.width, canvas.height] = resizeCanvas();
+    game.resize(canvas.width, canvas.height);
+
+    game.update(1 / 200);
+    game.draw();
+    requestAnimationFrame(frame2);
+}
+
+function resizeCanvas() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
+    if ((height * 0.95) * 2 > width) {
+        return [width, width / 2];
+    } else {
+        return [height * 1.9, height * 0.95];
+    }
 }
 
 requestAnimationFrame(frame);

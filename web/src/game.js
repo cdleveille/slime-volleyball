@@ -230,9 +230,44 @@ export default class Game {
         return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
     }
 
+    resize(newWidth, newHeight) {
+
+        this.ball.x = newWidth * (this.ball.x / this.gameWidth);
+        this.ball.y = newHeight * (this.ball.y / this.gameHeight);
+        this.ball.xv = this.ball.xv * (newWidth / this.gameWidth);
+        this.ball.yv = this.ball.yv * (newHeight / this.gameHeight);
+        this.ball.radius = newWidth * (24 / 1200);
+
+        this.netWidth = newWidth * (20 / 1200);
+        this.netHeight = newWidth * (100 / 1200);
+
+        this.p1.x = newWidth * (this.p1.x / this.gameWidth);
+        this.p1.y = newHeight * (this.p1.y / this.gameHeight);
+        this.p1.xv = this.p1.xv * (newWidth / this.gameWidth);
+        this.p1.yv = this.p1.yv * (newHeight / this.gameHeight);
+        this.p1.radius = newWidth * (56 / 1200);
+        this.p1.speed = newWidth * (5 / 1200);
+        this.p1.accel = newWidth * (5 / 1200);
+        this.p1.jump = newWidth * (5 / 1200);
+
+        this.p2.x = newWidth * (this.p2.x / this.gameWidth);
+        this.p2.y = newHeight * (this.p2.y / this.gameHeight);
+        this.p2.xv = this.p2.xv * (newWidth / this.gameWidth);
+        this.p2.yv = this.p2.yv * (newHeight / this.gameHeight);
+        this.p2.radius = newWidth * (56 / 1200);
+        this.p2.speed = newWidth * (5 / 1200);
+        this.p2.accel = newWidth * (5 / 1200);
+        this.p2.jump = newWidth * (5 / 1200);
+
+        this.gravity = newWidth * (0.1 / 1200);
+
+        this.gameWidth = newWidth;
+        this.gameHeight = newHeight;
+    }
+
     update(deltaTime) {
         if (!this.isFrozen) {
-            deltaTime = deltaTime * 200;
+            deltaTime = deltaTime * 170;
             this.ball.update(this.gravity, deltaTime);
             this.p1.update(this.gravity, this.gameHeight, deltaTime);
             this.p2.update(this.gravity, this.gameHeight, deltaTime);
@@ -246,15 +281,37 @@ export default class Game {
         this.ctx.fillStyle = this.backgroundColor;
         this.ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
 
+        if (this.gameWidth > 1000) {
+            this.ctx.font = "42px Arial";
+        } else if (this.gameWidth > 900){
+            this.ctx.font = "39px Arial";
+        } else if (this.gameWidth > 800){
+            this.ctx.font = "34px Arial";
+        } else if (this.gameWidth > 700){
+            this.ctx.font = "29px Arial";
+        } else if (this.gameWidth > 600){
+            this.ctx.font = "25px Arial";
+        } else if (this.gameWidth > 500){
+            this.ctx.font = "21px Arial";
+        } else if (this.gameWidth > 400){
+            this.ctx.font = "17px Arial";
+        } else if (this.gameWidth > 300){
+            this.ctx.font = "13px Arial";
+        } else if (this.gameWidth > 200){
+            this.ctx.font = "8px Arial";
+        } else if (this.gameWidth > 100){
+            this.ctx.font = "4px Arial";
+        } else {
+            this.ctx.font = "2px Arial";
+        }
+
         this.ctx.fillStyle = "#000000";
-        this.ctx.font = "42px Arial";
-        this.ctx.fillText(this.p1Score, 30, 50);
-        this.ctx.fillText(this.p2Score, this.gameWidth - 65, 50);
+        this.ctx.fillText(this.p1Score, this.gameWidth / 40, this.gameHeight / 12);
+        this.ctx.fillText(this.p2Score, this.gameWidth * 0.95, this.gameHeight / 12);
 
         if (this.gameOver) {
             this.ctx.fillStyle = "#000000";
-            this.ctx.font = "42px Arial";
-            this.ctx.fillText("Game Over!", this.gameWidth / 2 - 120, 50);
+            this.ctx.fillText("Game Over!", this.gameWidth / 2 - (this.gameWidth / 10), (this.gameHeight / 12));
         }
 
         this.ctx.fillStyle = this.netColor;
