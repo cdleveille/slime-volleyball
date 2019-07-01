@@ -24,46 +24,38 @@ export default class Player {
     getPupilOffet(ball, eyeXOffset, eyeYOffset, pupilOffsetRatio) {
         let xDiff = -(ball.x - (this.x + eyeXOffset));
         let yDiff = -(ball.y - (this.y - eyeYOffset));
-        let atanDegrees = this.degrees(Math.atan(yDiff / xDiff));
+        let atanDegrees = this.game.degrees(Math.atan(yDiff / xDiff));
         let angle = 0, xShift = 0, yShift = 0;
         if (xDiff > 0) {
             angle = atanDegrees;
-            xShift = -pupilOffsetRatio * Math.cos(this.radians(angle));
-            yShift = -pupilOffsetRatio * Math.sin(this.radians(angle));
+            xShift = -pupilOffsetRatio * Math.cos(this.game.radians(angle));
+            yShift = -pupilOffsetRatio * Math.sin(this.game.radians(angle));
         } else if (xDiff < 0) {
             if (yDiff > 0) {
                 angle = 180 + atanDegrees;
             } else if (yDiff < 0) {
                 angle = -180 + atanDegrees;
             }
-            xShift = -pupilOffsetRatio * Math.cos(this.radians(angle));
-            yShift = -pupilOffsetRatio * Math.sin(this.radians(angle));
+            xShift = -pupilOffsetRatio * Math.cos(this.game.radians(angle));
+            yShift = -pupilOffsetRatio * Math.sin(this.game.radians(angle));
         } else if (xDiff == 0) {
             if (yDiff > 0) {
                 angle = -90;
             } else {
                 angle = 90
             }
-            xShift = pupilOffsetRatio * Math.cos(this.radians(angle));
-            yShift = pupilOffsetRatio * Math.sin(this.radians(angle));
+            xShift = pupilOffsetRatio * Math.cos(this.game.radians(angle));
+            yShift = pupilOffsetRatio * Math.sin(this.game.radians(angle));
         } else if (yDiff == 0) {
             angle = 180;
-            xShift = pupilOffsetRatio * Math.cos(this.radians(angle));
-            yShift = pupilOffsetRatio * Math.sin(this.radians(angle));
+            xShift = pupilOffsetRatio * Math.cos(this.game.radians(angle));
+            yShift = pupilOffsetRatio * Math.sin(this.game.radians(angle));
         }
         return [xShift, yShift];
     }
 
-    degrees(radians) {
-        return (radians * 180) / Math.PI;
-    }
-
-    radians(degrees) {
-        return (degrees * Math.PI) / 180;
-    }
-
-    update(gravity, gameHeight, deltaTime) {
-        if (this.y < gameHeight) {
+    update(gravity, deltaTime) {
+        if (this.y < this.game.gameHeight) {
             this.yv += gravity * deltaTime;
         }
         
@@ -71,7 +63,9 @@ export default class Player {
         this.y += this.yv * deltaTime;
     }
 
-    draw(ctx, gameWidth, gameHeight, ball) {
+    draw() {
+        var ctx = this.game.ctx, ball = this.game.ball, gameWidth = this.game.gameWidth, gameHeight = this.game.gameHeight;
+
         // body
         ctx.fillStyle = this.color;
         ctx.beginPath();

@@ -1,6 +1,5 @@
 export default class InputHandler{
     constructor(player) {
-
         let left = player.inputs.left;
         let right = player.inputs.right;
         let jump = player.inputs.jump;

@@ -1,5 +1,5 @@
 export default class Game {
-    constructor(scoreLimit, ctx, gameWidth, gameHeight, backgroundColor, p1, p2, ball, netWidth, netHeight, netColor, gravity, bounce, bounceNet) {
+    constructor(scoreLimit, ctx, gameWidth, gameHeight, backgroundColor, p1, p2, ball, netWidth, netHeight, netColor, gravity, bounce, bounceNet, momentumTransfer, xvBoost) {
         this.scoreLimit = scoreLimit;
         this.ctx = ctx;
         this.gameWidth = gameWidth;
@@ -7,21 +7,27 @@ export default class Game {
         this.backgroundColor = backgroundColor;
         this.p1 = p1;
         this.p2 = p2;
+        this.players = [p1, p2];
+        this.p1.game = this;
+        this.p2.game = this;
         this.p1Score = 0;
         this.p2Score = 0;
-        this.players = [p1, p2];
         this.ball = ball;
+        this.ball.game = this;
         this.netWidth = netWidth;
         this.netHeight = netHeight;
         this.netColor = netColor;
         this.gravity = gravity;
         this.bounce = bounce;
         this.bounceNet = bounceNet;
+        this.momentumTransfer = momentumTransfer;
+        this.xvBoost = xvBoost;
         this.gameOver = false;
         this.isFrozen = false;
         this.frozenAtTime;
     }
 
+    // initialize the position of the game objects at the start of a new point
     resetPositions(ballX) {
         this.ball.x = ballX;
         this.ball.y = this.gameHeight / 3;
@@ -37,6 +43,7 @@ export default class Game {
         this.p2.jumpEnabled = true;
     }
 
+    // account for various game object collision events
     handleCollisions() {
         // p1 contacts floor
         if (this.p1.y >= this.gameHeight) {
@@ -115,7 +122,7 @@ export default class Game {
         // ball contacts net
         if (this.ballContactsCircle(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2)) {
             [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
-            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet);
+            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet, 0, 1);
         } else if (this.ball.y > this.gameHeight - this.netHeight + this.netWidth) {
             if (Math.abs(this.gameWidth / 2 - (this.ball.x + this.ball.radius)) <= this.netWidth / 2) {
                 this.ball.x = this.gameWidth / 2 - this.netWidth / 2 - this.ball.radius;
@@ -131,11 +138,12 @@ export default class Game {
             let player = this.players[i];
             if (this.ballContactsCircle(player.x, player.y, player.radius)) {
                 [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(player.x, player.y, player.radius);
-                [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, this.bounce);
+                [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, this.bounce, this.momentumTransfer, this.xvBoost);
             }
         }
     }
 
+    // determine whether the ball is contacting the given circular object
     ballContactsCircle(x, y, r) {
         if (Math.sqrt( Math.pow(this.ball.x - x, 2) + Math.pow(this.ball.y - y, 2) ) <= this.ball.radius + r) {
             return true
@@ -143,6 +151,7 @@ export default class Game {
 		return false
     }
 
+    // calculate the position of the ball tangent to the arc of the circular object it has contacted
     getBallContactsCirclePosition(x, y, r) {
         let combinedRadius = this.ball.radius + r;
         let xDiff = -(this.ball.x - x);
@@ -177,7 +186,8 @@ export default class Game {
         return [x + xShift, y + yShift];
     }
 
-    getBallContactsCircleVelocity(x, y, xv, yv, bounce) {
+    // calculate the rebound velocity vector of the ball when it bounces off of a circular object
+    getBallContactsCircleVelocity(x, y, xv, yv, bounce, momentumTransfer, xvBoost) {
         let ballSpeed = Math.sqrt( Math.pow(this.ball.xv, 2) + Math.pow(this.ball.yv, 2) );
         let xDiff = -(this.ball.x - x);
         let yDiff = -(this.ball.y - y);
@@ -208,28 +218,27 @@ export default class Game {
             xSpeed = ballSpeed * Math.cos(this.radians(angle));
             ySpeed = ballSpeed * Math.sin(this.radians(angle));
         }
-        xvFinal = (xSpeed + (xv * 0.12)) * bounce * 1.03;
-        yvFinal = (ySpeed + (yv * 0.12)) * bounce * 1.03;
+        xvFinal = (xSpeed + (xv * momentumTransfer));
+        yvFinal = (ySpeed + (yv * momentumTransfer));
         return [xvFinal, yvFinal];
     }
 
+    // convert from radians to degrees
     degrees(radians) {
         return (radians * 180) / Math.PI;
     }
 
+    // convert from degrees to radians
     radians(degrees) {
         return (degrees * Math.PI) / 180;
     }
 
-    freeze(ms) {
-        var now = new Date().getTime();
-        while (new Date().getTime() < now + ms) {}
-    }
-
+    // get the current time with high precision
     timestamp() {
         return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
     }
 
+    // adapt all scalable game fields to the size of the window
     resize(newWidth, newHeight) {
 
         this.ball.x = newWidth * (this.ball.x / this.gameWidth);
@@ -265,22 +274,25 @@ export default class Game {
         this.gameHeight = newHeight;
     }
 
+    // update the position/velocity of game objects
     update(deltaTime) {
         if (!this.isFrozen) {
             deltaTime = deltaTime * 170;
             this.ball.update(this.gravity, deltaTime);
-            this.p1.update(this.gravity, this.gameHeight, deltaTime);
-            this.p2.update(this.gravity, this.gameHeight, deltaTime);
+            this.p1.update(this.gravity, deltaTime);
+            this.p2.update(this.gravity, deltaTime);
         }
         this.handleCollisions();
     }
 
+    // render the current state of the game
     draw() {
+        // clear and fill with background color
         this.ctx.clearRect(0, 0, this.gameWidth, this.gameHeight);
-
         this.ctx.fillStyle = this.backgroundColor;
         this.ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
 
+        // set game font size based on dimensions of game
         if (this.gameWidth > 1000) {
             this.ctx.font = "42px Arial";
         } else if (this.gameWidth > 900){
@@ -305,24 +317,29 @@ export default class Game {
             this.ctx.font = "2px Arial";
         }
 
+        // draw player scores
         this.ctx.fillStyle = "#000000";
         this.ctx.fillText(this.p1Score, this.gameWidth / 40, this.gameHeight / 12);
         this.ctx.fillText(this.p2Score, this.gameWidth * 0.95, this.gameHeight / 12);
 
+        // draw game over message if applicable
         if (this.gameOver) {
             this.ctx.fillStyle = "#000000";
             this.ctx.fillText("Game Over!", this.gameWidth / 2 - (this.gameWidth / 10), (this.gameHeight / 12));
         }
 
+        // draw net
         this.ctx.fillStyle = this.netColor;
         this.ctx.fillRect(this.gameWidth / 2 - this.netWidth / 2, this.gameHeight - this.netHeight + this.netWidth / 2, this.netWidth, this.netHeight);
         this.ctx.beginPath();
         this.ctx.arc(this.gameWidth / 2, this.gameHeight - this.netHeight + this.netWidth / 2, this.netWidth / 2, 0, 2 * Math.PI, false);
         this.ctx.fill();
 
-        this.p1.draw(this.ctx, this.gameWidth, this.gameHeight, this.ball);
-        this.p2.draw(this.ctx, this.gameWidth, this.gameHeight, this.ball);
+        // draw players
+        this.p1.draw();
+        this.p2.draw();
 
-        this.ball.draw(this.ctx);
+        // draw ball
+        this.ball.draw();
     }
 }

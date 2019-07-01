@@ -24,7 +24,9 @@ export default class Ball {
         this.y += this.yv * deltaTime;
     }
 
-    draw(ctx) {
+    draw() {
+        var ctx = this.game.ctx;
+        
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
