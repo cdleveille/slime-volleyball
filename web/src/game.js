@@ -275,12 +275,12 @@ export default class Game {
     }
 
     // update the position/velocity of game objects
-    update(deltaTime) {
+    update(step) {
         if (!this.isFrozen) {
-            deltaTime = deltaTime * 170;
-            this.ball.update(this.gravity, deltaTime);
-            this.p1.update(this.gravity, deltaTime);
-            this.p2.update(this.gravity, deltaTime);
+            step = step * 170;
+            this.ball.update(this.gravity, step);
+            this.p1.update(this.gravity, step);
+            this.p2.update(this.gravity, step);
         }
         this.handleCollisions();
     }

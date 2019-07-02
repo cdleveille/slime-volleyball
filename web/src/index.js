@@ -13,14 +13,13 @@ let ball = new Ball(24, '#006400');
 
 let playerRadius = 56;
 let playerSpeed = 5;
-let playerAccel = 5;
 let playerJump = 5;
 
-let p1Inputs = { left: 65, right: 68, jump: 87 };
-let p2Inputs = { left: 37, right: 39, jump: 38 };
+let p1Inputs = { left: 65, right: 68, jump: 87 , slow: 83};
+let p2Inputs = { left: 37, right: 39, jump: 38 , slow: 40};
 
-let p1 = new Player("P1", playerRadius, playerSpeed, playerAccel, playerJump, p1Inputs, "#00008B", false);
-let p2 = new Player("P2", playerRadius, playerSpeed, playerAccel, playerJump, p2Inputs, "#8B0000", false);
+let p1 = new Player("P1", playerRadius, playerSpeed, playerJump, p1Inputs, "#00008B", false);
+let p2 = new Player("P2", playerRadius, playerSpeed, playerJump, p2Inputs, "#8B0000", false);
 
 let scoreLimit = 3;
 let netWidth = 10;
@@ -63,9 +62,6 @@ function frame() {
 }
 
 function frame2() {
-    [canvas.width, canvas.height] = resizeCanvas();
-    game.resize(canvas.width, canvas.height);
-
     game.update(1 / 200);
     game.draw();
     requestAnimationFrame(frame2);

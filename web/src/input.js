@@ -3,6 +3,7 @@ export default class InputHandler{
         let left = player.inputs.left;
         let right = player.inputs.right;
         let jump = player.inputs.jump;
+        let slow = player.inputs.slow;
 
         document.addEventListener("keydown", (event) => {
             switch(event.keyCode) {
@@ -19,6 +20,9 @@ export default class InputHandler{
                         player.jumpEnabled = false;
                     }
                     break;
+                case slow:
+                    player.speedMult = 0.5;
+                    break;
             }
         });
 
@@ -34,6 +38,9 @@ export default class InputHandler{
                     break;
                 case jump:
                     player.jumpHeldDown = false;
+                    break;
+                case slow:
+                    player.speedMult = 1;
                     break;
             }
         });

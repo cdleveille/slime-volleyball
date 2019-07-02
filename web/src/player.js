@@ -1,11 +1,10 @@
 import InputHandler from "/src/input.js";
 
 export default class Player {
-    constructor(name, radius, speed, accel, jump, inputs, color, isAI) {
+    constructor(name, radius, speed, jump, inputs, color, isAI) {
         this.name = name;
         this.radius = radius;
         this.speed = speed;
-        this.accel = accel;
         this.jump = jump;
         this.inputs = inputs;
         this.color = color;
@@ -15,12 +14,13 @@ export default class Player {
         this.y = 0;
         this.xv = 0;
         this.yv = 0;
+        this.speedMult = 1;
         this.jumpHeldDown = false;
         this.jumpEnabled = true;
-
         this.inputHandler = new InputHandler(this);
     }
 
+    // calculate the amount to displace the player's pupil given the position of the ball
     getPupilOffet(ball, eyeXOffset, eyeYOffset, pupilOffsetRatio) {
         let xDiff = -(ball.x - (this.x + eyeXOffset));
         let yDiff = -(ball.y - (this.y - eyeYOffset));
@@ -54,15 +54,22 @@ export default class Player {
         return [xShift, yShift];
     }
 
-    update(gravity, deltaTime) {
+    // update the position/velocity of the player
+    update(gravity, step) {
         if (this.y < this.game.gameHeight) {
-            this.yv += gravity * deltaTime;
+            this.yv += gravity * step;
+        }
+
+        // enforce maximum horizontal speed
+        if (Math.abs(this.xv) > this.speed * this.speedMult) {
+            this.xv = this.speed * this.speedMult * (this.xv / Math.abs(this.xv));
         }
         
-        this.x += this.xv * deltaTime;
-        this.y += this.yv * deltaTime;
+        this.x += this.xv * step;
+        this.y += this.yv * step;
     }
 
+    // render the player
     draw() {
         var ctx = this.game.ctx, ball = this.game.ball, gameWidth = this.game.gameWidth, gameHeight = this.game.gameHeight;
 
@@ -91,7 +98,7 @@ export default class Player {
 
         if (ball.y + ball.radius >= gameHeight - 10) {
             if ((this.x < gameWidth / 2 && ball.x < gameWidth / 2) || (this.x > gameWidth / 2 && ball.x > gameWidth / 2)) {
-                eyeRadius = this.radius / 3;
+                eyeRadius = this.radius / 2.75;
             }
         }
 

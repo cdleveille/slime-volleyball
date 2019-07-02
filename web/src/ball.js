@@ -9,8 +9,9 @@ export default class Ball {
         this.color = color;
     }
 
-    update(gravity, deltaTime) {
-        this.yv += gravity * deltaTime;
+    // update the position/velocity of the ball
+    update(gravity, step) {
+        this.yv += gravity * step;
 
         // enforce max speed
         // if (Math.abs(this.xv) > this.maxV) {
@@ -20,10 +21,11 @@ export default class Ball {
         //     this.yv = this.maxV * (this.yv / Math.abs(this.yv));
         // }
 
-        this.x += this.xv * deltaTime;
-        this.y += this.yv * deltaTime;
+        this.x += this.xv * step;
+        this.y += this.yv * step;
     }
 
+    // render the ball
     draw() {
         var ctx = this.game.ctx;
         
@@ -38,17 +40,18 @@ export default class Ball {
         this.drawXInd(ctx);
     }
 
+    // render a horizontal position indicator if the ball is off-screen
     drawXInd(ctx) {
         let radius = 0;
-        if (this.y - this.radius < -450) {
+        if (this.y - this.radius < -this.radius * 18) {
             radius = this.radius * (4 / 24);
-        } else if (this.y - this.radius < -350) {
+        } else if (this.y - this.radius < -this.radius * 14) {
             radius = this.radius * (5 / 24);
-        } else if (this.y - this.radius < -250) {
+        } else if (this.y - this.radius < -this.radius * 10) {
             radius = this.radius * (6 / 24);
-        } else if (this.y - this.radius < -150) {
+        } else if (this.y - this.radius < -this.radius * 6) {
             radius = this.radius * (7 / 24);
-        } else if (this.y - this.radius < -50) {
+        } else if (this.y - this.radius < -this.radius * 2) {
             radius = this.radius * (8 / 24);
         }
 
