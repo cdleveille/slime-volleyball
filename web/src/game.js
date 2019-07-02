@@ -78,6 +78,38 @@ export default class Game {
             this.p2.x = this.gameWidth - this.p2.radius;
         }
 
+        // ball contacts player
+        for (let i = 0; i < this.players.length; i++) {
+            let player = this.players[i];
+            if (this.ballContactsCircle(player.x, player.y, player.radius)) {
+                [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(player.x, player.y, player.radius);
+                [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, 1, this.momentumTransfer);
+            }
+        }
+
+        // ball contacts wall
+        if (this.ball.x < this.ball.radius) {
+            this.ball.x = this.ball.radius;
+            this.ball.xv = -this.ball.xv * this.bounce;
+        } else if (this.ball.x > this.gameWidth - this.ball.radius) {
+            this.ball.x = this.gameWidth - this.ball.radius;
+            this.ball.xv = -this.ball.xv * this.bounce;
+        }
+
+        // ball contacts net
+        if (this.ballContactsCircle(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2)) {
+            [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
+            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet, 0);
+        } else if (this.ball.y > this.gameHeight - this.netHeight + this.netWidth) {
+            if (Math.abs(this.gameWidth / 2 - (this.ball.x + this.ball.radius)) <= this.netWidth / 2) {
+                this.ball.x = this.gameWidth / 2 - this.netWidth / 2 - this.ball.radius;
+                this.ball.xv = -this.ball.xv * this.bounceNet;
+            } else if (Math.abs((this.ball.x - this.ball.radius) - this.gameWidth / 2) <= this.netWidth / 2) {
+                this.ball.x = this.gameWidth / 2 + this.netWidth / 2 + this.ball.radius;
+                this.ball.xv = -this.ball.xv * this.bounceNet;
+            }
+        }
+
         // ball contacts floor
         if (this.ball.y >= this.gameHeight - this.ball.radius) {
             this.ball.y = this.gameHeight - this.ball.radius
@@ -106,38 +138,6 @@ export default class Game {
                     ballX = this.gameWidth / 4;
                 }
                 this.resetPositions(ballX);
-            }
-        }
-
-        // ball contacts wall
-        if (this.ball.x < this.ball.radius) {
-            this.ball.x = this.ball.radius;
-            this.ball.xv = -this.ball.xv * this.bounce;
-        } else if (this.ball.x > this.gameWidth - this.ball.radius) {
-            this.ball.x = this.gameWidth - this.ball.radius;
-            this.ball.xv = -this.ball.xv * this.bounce;
-        }
-
-        // ball contacts net
-        if (this.ballContactsCircle(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2)) {
-            [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
-            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet, 0);
-        } else if (this.ball.y > this.gameHeight - this.netHeight + this.netWidth) {
-            if (Math.abs(this.gameWidth / 2 - (this.ball.x + this.ball.radius)) <= this.netWidth / 2) {
-                this.ball.x = this.gameWidth / 2 - this.netWidth / 2 - this.ball.radius;
-                this.ball.xv = -this.ball.xv * this.bounceNet;
-            } else if (Math.abs((this.ball.x - this.ball.radius) - this.gameWidth / 2) <= this.netWidth / 2) {
-                this.ball.x = this.gameWidth / 2 + this.netWidth / 2 + this.ball.radius;
-                this.ball.xv = -this.ball.xv * this.bounceNet;
-            }
-        }
-
-        // ball contacts player
-        for (let i = 0; i < this.players.length; i++) {
-            let player = this.players[i];
-            if (this.ballContactsCircle(player.x, player.y, player.radius)) {
-                [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(player.x, player.y, player.radius);
-                [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, 1, this.momentumTransfer);
             }
         }
     }
