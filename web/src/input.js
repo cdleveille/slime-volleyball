@@ -4,24 +4,24 @@ export default class InputHandler{
         let right = player.inputs.right;
         let jump = player.inputs.jump;
         let slow = player.inputs.slow;
+        let toggleAI = player.inputs.toggleAI;
 
         document.addEventListener("keydown", (event) => {
             switch(event.keyCode) {
                 case left:
-                    player.xv = -player.speed;
+                    player.keyAction("left", null);
                     break;
                 case right:
-                    player.xv = player.speed;
+                    player.keyAction("right", null);
                     break;
                 case jump:
-                    player.jumpHeldDown = true;
-                    if (player.jumpEnabled) {
-                        player.yv = -player.jump;
-                        player.jumpEnabled = false;
-                    }
+                    player.keyAction("jump", null);
                     break;
                 case slow:
-                    player.speedMult = 0.5;
+                    player.keyAction("slow", null);
+                    break;
+                case toggleAI:
+                    player.isAI = !player.isAI;
                     break;
             }
         });
@@ -29,18 +29,16 @@ export default class InputHandler{
         document.addEventListener("keyup", (event) => {
             switch(event.keyCode) {
                 case left:
-                    if (player.xv < 0)
-                        player.xv = 0;
+                    player.keyAction(null, "left");
                     break;
                 case right:
-                    if (player.xv > 0)
-                        player.xv = 0;
+                    player.keyAction(null, "right");
                     break;
                 case jump:
-                    player.jumpHeldDown = false;
+                    player.keyAction(null, "jump");
                     break;
                 case slow:
-                    player.speedMult = 1;
+                    player.keyAction(null, "slow");
                     break;
             }
         });

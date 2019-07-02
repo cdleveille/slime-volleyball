@@ -5,6 +5,7 @@ import Ball from "/src/ball.js";
 import Player from "/src/player.js";
 import Game from "/src/game.js";
 import WindowHandler from "/src/window.js";
+import AI from "/src/ai.js";
 
 let canvas = document.getElementById("gameScreen");
 let ctx = canvas.getContext("2d");
@@ -15,23 +16,26 @@ let playerRadius = 56;
 let playerSpeed = 5;
 let playerJump = 5;
 
-let p1Inputs = { left: 65, right: 68, jump: 87 , slow: 83};
-let p2Inputs = { left: 37, right: 39, jump: 38 , slow: 40};
+let p1Inputs = { left: 65, right: 68, jump: 87 , slow: 83, toggleAI: 49 };
+let p2Inputs = { left: 37, right: 39, jump: 38 , slow: 40, toggleAI: 50 };
 
 let p1 = new Player("P1", playerRadius, playerSpeed, playerJump, p1Inputs, "#00008B", false);
-let p2 = new Player("P2", playerRadius, playerSpeed, playerJump, p2Inputs, "#8B0000", false);
+let p2 = new Player("P2", playerRadius, playerSpeed, playerJump, p2Inputs, "#8B0000", true);
 
-let scoreLimit = 3;
+let scoreLimit = 10;
 let netWidth = 10;
 let netHeight = 100;
 let gravity = 0.1;
 let bounce = 0.97;
-let bounceNet = 0.75;
+let bounceNet = 0.8;
 let momentumTransfer = 0.15;
-let xvBoost = 1.03;
 
 let game = new Game(scoreLimit, ctx, canvas.width, canvas.height, "#ADD8E6", p1, p2, ball, netWidth, netHeight, 
-                    "#000000", gravity, bounce, bounceNet, momentumTransfer, xvBoost);
+                    "#000000", gravity, bounce, bounceNet, momentumTransfer);
+
+let ai = new AI(game);
+game.p1.ai = ai;
+game.p2.ai = ai;
 
 let wh = new WindowHandler(canvas, game);
 wh.resizeGameWindow();
@@ -59,12 +63,6 @@ function frame() {
     game.draw();
     last = now - (dt % step);
     requestAnimationFrame(frame);
-}
-
-function frame2() {
-    game.update(1 / 200);
-    game.draw();
-    requestAnimationFrame(frame2);
 }
 
 requestAnimationFrame(frame);

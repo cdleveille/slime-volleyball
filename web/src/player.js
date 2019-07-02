@@ -20,6 +20,72 @@ export default class Player {
         this.inputHandler = new InputHandler(this);
     }
 
+    // handle keyboard input
+    keyAction(keyDown, keyUp) {
+        if (!this.isAI) {
+            switch(keyDown) {
+                case "left":
+                    this.xv = -this.speed;
+                    break;
+                case "right":
+                    this.xv = this.speed;
+                    break;
+                case "jump":
+                    this.jumpHeldDown = true;
+                    if (this.jumpEnabled) {
+                        this.yv = -this.jump;
+                        this.jumpEnabled = false;
+                    }
+                    break;
+                case "slow":
+                    this.speedMult = 0.5;
+                    break;
+            }
+
+            switch(keyUp) {
+                case "left":
+                    if (this.xv < 0) {
+                        this.xv = 0;
+                    }
+                    break;
+                case "right":
+                    if (this.xv > 0) {
+                        this.xv = 0;
+                    }
+                    break;
+                case "jump":
+                    this.jumpHeldDown = false;
+                    break;
+                case "slow":
+                    this.speedMult = 1;
+                    break;
+            }
+        }
+    }
+
+    // get an action from the AI
+    aiAction() {
+        let action = this.ai.getAction(this.x, this.speed);
+        switch(action) {
+            case "left":
+                this.xv = -this.speed;
+                break;
+            case "right":
+                this.xv = this.speed;
+                break;
+            case "stop":
+                this.xv = 0;
+                break;
+            case "jump":
+                if (this.jumpEnabled) {
+                    this.yv = -this.jump;
+                    this.jumpEnabled = false;
+                }
+                break;
+            
+        }
+    }
+
     // calculate the amount to displace the player's pupil given the position of the ball
     getPupilOffet(ball, eyeXOffset, eyeYOffset, pupilOffsetRatio) {
         let xDiff = -(ball.x - (this.x + eyeXOffset));
@@ -55,17 +121,24 @@ export default class Player {
     }
 
     // update the position/velocity of the player
-    update(gravity, step) {
+    update(step) {
+        // get ai action if applicable
+        if (this.isAI) {
+            this.aiAction();
+        }
+
+        // enforce gravity
         if (this.y < this.game.gameHeight) {
-            this.yv += gravity * step;
+            this.yv += this.game.gravity * step;
         }
 
         // enforce maximum horizontal speed
-        if (Math.abs(this.xv) > this.speed * this.speedMult) {
-            this.xv = this.speed * this.speedMult * (this.xv / Math.abs(this.xv));
+        if (Math.abs(this.xv) > this.speed) {
+            this.xv = this.speed * (this.xv / Math.abs(this.xv));
         }
         
-        this.x += this.xv * step;
+        // increment position
+        this.x += this.xv * this.speedMult * step;
         this.y += this.yv * step;
     }
 

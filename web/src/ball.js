@@ -5,21 +5,20 @@ export default class Ball {
         this.xv = 0;
         this.yv = 0;
         this.radius = radius;
-        this.maxV = this.radius / 1.6;
         this.color = color;
     }
 
     // update the position/velocity of the ball
-    update(gravity, step) {
-        this.yv += gravity * step;
+    update(step) {
+        this.yv += this.game.gravity * step;
 
         // enforce max speed
-        // if (Math.abs(this.xv) > this.maxV) {
-        //     this.xv = this.maxV * (this.xv / Math.abs(this.xv));
-        // }
-        // if (Math.abs(this.yv) > this.maxV) {
-        //     this.yv = this.maxV * (this.yv / Math.abs(this.yv));
-        // }
+        if (Math.abs(this.xv) > this.radius / 1.6) {
+            this.xv = this.maxV * (this.xv / Math.abs(this.xv));
+        }
+        if (Math.abs(this.yv) > this.radius / 1.6) {
+            this.yv = this.maxV * (this.yv / Math.abs(this.yv));
+        }
 
         this.x += this.xv * step;
         this.y += this.yv * step;

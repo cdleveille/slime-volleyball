@@ -1,5 +1,5 @@
 export default class Game {
-    constructor(scoreLimit, ctx, gameWidth, gameHeight, backgroundColor, p1, p2, ball, netWidth, netHeight, netColor, gravity, bounce, bounceNet, momentumTransfer, xvBoost) {
+    constructor(scoreLimit, ctx, gameWidth, gameHeight, backgroundColor, p1, p2, ball, netWidth, netHeight, netColor, gravity, bounce, bounceNet, momentumTransfer) {
         this.scoreLimit = scoreLimit;
         this.ctx = ctx;
         this.gameWidth = gameWidth;
@@ -21,7 +21,6 @@ export default class Game {
         this.bounce = bounce;
         this.bounceNet = bounceNet;
         this.momentumTransfer = momentumTransfer;
-        this.xvBoost = xvBoost;
         this.gameOver = false;
         this.isFrozen = false;
         this.frozenAtTime;
@@ -49,7 +48,7 @@ export default class Game {
         if (this.p1.y >= this.gameHeight) {
             this.p1.y = this.gameHeight;
             this.p1.jumpEnabled = true;
-            if (this.p1.jumpHeldDown) {
+            if (this.p1.jumpHeldDown && !this.p1.isAI) {
                 this.p1.yv = -this.p1.jump;
                 this.p1.jumpEnabled = false;
             }
@@ -59,7 +58,7 @@ export default class Game {
         if (this.p2.y >= this.gameHeight) {
             this.p2.y = this.gameHeight;
             this.p2.jumpEnabled = true;
-            if (this.p2.jumpHeldDown) {
+            if (this.p2.jumpHeldDown && !this.p2.isAI) {
                 this.p2.yv = -this.p2.jump;
                 this.p2.jumpEnabled = false;
             }
@@ -122,7 +121,7 @@ export default class Game {
         // ball contacts net
         if (this.ballContactsCircle(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2)) {
             [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
-            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet, 0, 1);
+            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet, 0);
         } else if (this.ball.y > this.gameHeight - this.netHeight + this.netWidth) {
             if (Math.abs(this.gameWidth / 2 - (this.ball.x + this.ball.radius)) <= this.netWidth / 2) {
                 this.ball.x = this.gameWidth / 2 - this.netWidth / 2 - this.ball.radius;
@@ -138,7 +137,7 @@ export default class Game {
             let player = this.players[i];
             if (this.ballContactsCircle(player.x, player.y, player.radius)) {
                 [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(player.x, player.y, player.radius);
-                [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, this.bounce, this.momentumTransfer, this.xvBoost);
+                [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(player.x, player.y, player.xv, player.yv, 1, this.momentumTransfer);
             }
         }
     }
@@ -187,7 +186,7 @@ export default class Game {
     }
 
     // calculate the rebound velocity vector of the ball when it bounces off of a circular object
-    getBallContactsCircleVelocity(x, y, xv, yv, bounce, momentumTransfer, xvBoost) {
+    getBallContactsCircleVelocity(x, y, xv, yv, bounce, momentumTransfer) {
         let ballSpeed = Math.sqrt( Math.pow(this.ball.xv, 2) + Math.pow(this.ball.yv, 2) );
         let xDiff = -(this.ball.x - x);
         let yDiff = -(this.ball.y - y);
@@ -218,8 +217,8 @@ export default class Game {
             xSpeed = ballSpeed * Math.cos(this.radians(angle));
             ySpeed = ballSpeed * Math.sin(this.radians(angle));
         }
-        xvFinal = (xSpeed + (xv * momentumTransfer));
-        yvFinal = (ySpeed + (yv * momentumTransfer));
+        xvFinal = (xSpeed + (xv * momentumTransfer)) * bounce;
+        yvFinal = (ySpeed + (yv * momentumTransfer)) * bounce;
         return [xvFinal, yvFinal];
     }
 
@@ -278,9 +277,9 @@ export default class Game {
     update(step) {
         if (!this.isFrozen) {
             step = step * 170;
-            this.ball.update(this.gravity, step);
-            this.p1.update(this.gravity, step);
-            this.p2.update(this.gravity, step);
+            this.ball.update(step);
+            this.p1.update(step);
+            this.p2.update(step);
         }
         this.handleCollisions();
     }

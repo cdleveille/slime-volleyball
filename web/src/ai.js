@@ -2,6 +2,77 @@ export default class AI {
     constructor(game) {
         this.game = game;
     }
+
+    // return an action based on the state of the game
+    getAction(x, margin) {
+        var action, mult, xLand = this.predictBallLandingPosition();
+        // pl
+        if (x < this.game.gameWidth / 2) {
+            // ball will land on p1 side
+            if (xLand < this.game.gameWidth / 2) {
+                // go to just behind ball landing spot
+                if (x > this.game.gameWidth * 3 / 8) {
+                    mult = 1 / 4;
+                } else if (x > this.game.gameWidth * 4 / 8) {
+                    mult = 1 / 2;
+                } else {
+                    mult = 3 / 4;
+                }
+                if (x < xLand - this.game.p1.radius * 3 / 4) {
+                    action = "right";
+                } else {
+                    action = "left";
+                }
+                if (Math.abs(x - (xLand - this.game.p1.radius * 3 / 4)) < margin) {
+                    action = "stop";
+                }
+            // ball will land on p2 side
+            } else {
+                // go to center of p1 side
+                if (x < this.game.gameWidth / 4) {
+                    action = "right";
+                } else {
+                    action = "left";
+                }
+                if (Math.abs(x - (this.game.gameWidth / 4)) < margin) {
+                    action = "stop";
+                }
+            }
+        // p2
+        } else {
+            // ball will land on p2 side
+            if (xLand > this.game.gameWidth / 2) {
+                // go to just behind ball landing spot
+                if (x < this.game.gameWidth * 5 / 8) {
+                    mult = 1 / 4;
+                } else if (x < this.game.gameWidth * 6 / 8) {
+                    mult = 1 / 2;
+                } else {
+                    mult = 3 / 4;
+                }
+                if (x < xLand + this.game.p2.radius * mult) {
+                    action = "right";
+                } else {
+                    action = "left";
+                }
+                if (Math.abs(x - (xLand + this.game.p2.radius * mult)) < margin) {
+                    action = "stop";
+                }
+            // ball will land on p1 side
+            } else {
+                // go to center of p2 side
+                if (x < this.game.gameWidth * 3 / 4) {
+                    action = "right";
+                } else {
+                    action = "left";
+                }
+                if (Math.abs(x - (this.game.gameWidth * 3 / 4)) < margin) {
+                    action = "stop";
+                }
+            }
+        }
+        return action;
+    }
     
     // predict the horizontal position of the ball when it contacts the floor
     predictBallLandingPosition() {
@@ -15,8 +86,8 @@ export default class AI {
                 gameHeight = this.game.gameHeight;
         
         // frames: number of frames elapsed during ball's flight
-        var frames1 = Math.sqrt(-yv + (Math.pow(yv, 2) - 2 * g * (y - gameHeight + r))) / g;
-        var frames2 = Math.sqrt(-yv + (Math.pow(yv, 2) - 2 * g * (y - gameHeight + r))) / g;
+        var frames1 = (-yv + Math.sqrt((Math.pow(yv, 2) - 2 * g * (y - gameHeight + r)))) / g;
+        var frames2 = (-yv - Math.sqrt((Math.pow(yv, 2) - 2 * g * (y - gameHeight + r)))) / g;
         var frames = Math.max(frames1, frames2);
 
         // d: total horizontal distance traveled by ball during flight (pixels), disregarding walls
