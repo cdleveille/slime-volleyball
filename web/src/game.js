@@ -46,7 +46,7 @@ export default class Game {
         this.isFrozen = false;
     }
 
-    // account for various game object collision events
+    // detect and account for various game object collision events
     handleCollisions() {
         // p1 contacts floor
         if (this.p1.y >= this.gameHeight) {
@@ -157,16 +157,19 @@ export default class Game {
 		return false
     }
 
+    // determine whether the ball is contacting the top of the net
     ballContactsNetTop() {
         return this.ballContactsCircle(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
     }
 
+    // determine whether the ball is contacting the left side of the bottom of the net
     ballContactsNetBottomLeft() {
         return this.ball.y > this.gameHeight - this.netHeight + this.netWidth &&
-            Math.abs(Math.abs(this.ball.x + this.ball.radius - this.gameWidth / 2) < this.netWidth / 2) &&
+            Math.abs(this.ball.x + this.ball.radius - this.gameWidth / 2) < this.netWidth / 2 &&
             this.ball.xv > 0;
     }
 
+    // determine whether the ball is contacting the right side of the bottom of the net
     ballContactsNetBottomRight() {
         return this.ball.y > this.gameHeight - this.netHeight + this.netWidth && 
             Math.abs(this.ball.x - this.ball.radius - this.gameWidth / 2) < this.netWidth / 2 &&
