@@ -1,20 +1,15 @@
 import InputHandler from "/src/input.js";
 
 export default class Player {
-    constructor(name, radius, speed, jump, inputs, color, isAI) {
-        this.name = name;
-        this.radius = radius;
-        this.speed = speed;
-        this.jump = jump;
+    constructor(radiusMult, speedMult, jumpMult, inputs, color, isAI) {
+        this.radiusMult = radiusMult;
+        this.speedMult = speedMult;
+        this.jumpMult = jumpMult;
         this.inputs = inputs;
         this.color = color;
         this.isAI = isAI;
 
-        this.x = 0;
-        this.y = 0;
-        this.xv = 0;
-        this.yv = 0;
-        this.speedMult = 1;
+        this.speedSlowMult = 1;
         this.jumpHeldDown = false;
         this.jumpEnabled = true;
         this.inputHandler = new InputHandler(this);
@@ -38,7 +33,7 @@ export default class Player {
                     }
                     break;
                 case "slow":
-                    this.speedMult = 0.5;
+                    this.speedSlowMult = 0.5;
                     break;
             }
 
@@ -57,7 +52,7 @@ export default class Player {
                     this.jumpHeldDown = false;
                     break;
                 case "slow":
-                    this.speedMult = 1;
+                    this.speedSlowMult = 1;
                     break;
             }
         }
@@ -138,7 +133,7 @@ export default class Player {
         }
         
         // increment position
-        this.x += this.xv * this.speedMult * step;
+        this.x += this.xv * this.speedSlowMult * step;
         this.y += this.yv * step;
     }
 
@@ -169,7 +164,7 @@ export default class Player {
         let pupilOffsetRatio = this.radius / 10;
         let pupilOffsetX = 0, pupilOffsetY = 0;
 
-        if (ball.y + ball.radius >= gameHeight - 10) {
+        if (ball.y + ball.radius >= gameHeight) {
             if ((this.x < gameWidth / 2 && ball.x < gameWidth / 2) || (this.x > gameWidth / 2 && ball.x > gameWidth / 2)) {
                 eyeRadius = this.radius / 2.75;
             }

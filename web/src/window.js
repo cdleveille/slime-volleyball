@@ -1,13 +1,14 @@
 export default class WindowHandler{
-    constructor(canvas, game) {
+    constructor(canvas, game, pct) {
         this.canvas = canvas;
         this.game = game;
+        this.pct = pct;
     
         function resizeCanvas() {
-            if (window.innerHeight * 1.9 > window.innerWidth * 0.95) {
-                return [window.innerWidth * 0.95, window.innerWidth * 0.475];
+            if (window.innerHeight * pct * 2 > window.innerWidth * pct) {
+                return [window.innerWidth * pct, window.innerWidth * pct / 2];
             } else {
-                return [window.innerHeight * 1.9, window.innerHeight * 0.95];
+                return [window.innerHeight * pct * 2, window.innerHeight * pct];
             }
         }
 
@@ -23,10 +24,10 @@ export default class WindowHandler{
     }
 
     resizeCanvas() {
-        if ((window.innerHeight * 0.95) * 2 > window.innerWidth * 0.95) {
-            return [window.innerWidth * 0.95, window.innerWidth * 0.475];
+        if (window.innerHeight * this.pct * 2 > window.innerWidth * this.pct) {
+            return [window.innerWidth * this.pct, window.innerWidth * this.pct / 2];
         } else {
-            return [window.innerHeight * 1.9, window.innerHeight * 0.95];
+            return [window.innerHeight * this.pct * 2, window.innerHeight * this.pct];
         }
     }
 }

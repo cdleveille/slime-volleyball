@@ -1,5 +1,4 @@
 // http-server -a localhost -p 8000 -c-1    http://localhost:8000/index.html
-// game loop:   https://codeincomplete.com/posts/javascript-game-foundations-the-game-loop/
 
 import Ball from "/src/ball.js";
 import Player from "/src/player.js";
@@ -10,37 +9,36 @@ import AI from "/src/ai.js";
 let canvas = document.getElementById("gameScreen");
 let ctx = canvas.getContext("2d");
 
-let ball = new Ball(24, '#006400');
-
-let playerRadius = 56;
-let playerSpeed = 5;
-let playerJump = 5;
+let scoreLimit = 10,
+    windowPercent = 0.95,
+    ballRadiusMult = 1.00,
+    playerRadiusMult = 1.0,
+    playerSpeedMult = 1.00,
+    playerJumpMult = 1.00,
+    netWidthMult = 1.00,
+    netHeightMult = 1.00,
+    gravityMult = 1.00,
+    bounce = 0.97,
+    bounceNet = 0.80,
+    momentumTransfer = 0.15;
 
 let p1Inputs = { left: 65, right: 68, jump: 87 , slow: 83, toggleAI: 49 };
 let p2Inputs = { left: 37, right: 39, jump: 38 , slow: 40, toggleAI: 50 };
 
-let p1 = new Player("P1", playerRadius, playerSpeed, playerJump, p1Inputs, "#00008B", false);
-let p2 = new Player("P2", playerRadius, playerSpeed, playerJump, p2Inputs, "#8B0000", true);
+let p1 = new Player(playerRadiusMult, playerSpeedMult, playerJumpMult, p1Inputs, "#00008B", false);
+let p2 = new Player(playerRadiusMult, playerSpeedMult, playerJumpMult, p2Inputs, "#8B0000", true);
 
-let scoreLimit = 10;
-let netWidth = 10;
-let netHeight = 100;
-let gravity = 0.1;
-let bounce = 0.97;
-let bounceNet = 0.8;
-let momentumTransfer = 0.15;
+let ball = new Ball(ballRadiusMult, '#006400');
 
-let game = new Game(scoreLimit, ctx, canvas.width, canvas.height, "#ADD8E6", p1, p2, ball, netWidth, netHeight, 
-                    "#000000", gravity, bounce, bounceNet, momentumTransfer);
+let game = new Game(scoreLimit, ctx, "#ADD8E6", p1, p2, ball, netWidthMult, netHeightMult, 
+                    "#000000", gravityMult, bounce, bounceNet, momentumTransfer);
 
 let ai = new AI(game);
-game.p1.ai = ai;
-game.p2.ai = ai;
 
-let wh = new WindowHandler(canvas, game);
+let wh = new WindowHandler(canvas, game, windowPercent);
 wh.resizeGameWindow();
 
-var ballX;
+let ballX;
 if (Math.random() >= 0.5) {
     ballX = game.gameWidth / 4;
 } else {
@@ -48,8 +46,8 @@ if (Math.random() >= 0.5) {
 }
 game.resetPositions(ballX);
 
-var updateRate = 500;
-var dt, now, last = game.timestamp(), step = 1 / updateRate;
+let updateRate = 500;
+let dt, now, last = game.timestamp(), step = 1 / updateRate;
 
 function frame() {
     now = game.timestamp();

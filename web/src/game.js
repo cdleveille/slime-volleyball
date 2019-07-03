@@ -1,9 +1,9 @@
 export default class Game {
-    constructor(scoreLimit, ctx, gameWidth, gameHeight, backgroundColor, p1, p2, ball, netWidth, netHeight, netColor, gravity, bounce, bounceNet, momentumTransfer) {
+    constructor(scoreLimit, ctx, backgroundColor, p1, p2, ball, netWidthMult, netHeightMult, netColor, gravityMult, bounce, bounceNet, momentumTransfer) {
         this.scoreLimit = scoreLimit;
         this.ctx = ctx;
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+        this.gameWidth = window.innerWidth
+        this.gameHeight = window.innerHeight;
         this.backgroundColor = backgroundColor;
         this.p1 = p1;
         this.p2 = p2;
@@ -14,16 +14,14 @@ export default class Game {
         this.p2Score = 0;
         this.ball = ball;
         this.ball.game = this;
-        this.netWidth = netWidth;
-        this.netHeight = netHeight;
+        this.netWidthMult = netWidthMult;
+        this.netHeightMult = netHeightMult;
         this.netColor = netColor;
-        this.gravity = gravity;
+        this.gravityMult = gravityMult;
         this.bounce = bounce;
         this.bounceNet = bounceNet;
         this.momentumTransfer = momentumTransfer;
         this.gameOver = false;
-        this.isFrozen = false;
-        this.frozenAtTime;
     }
 
     // initialize the position of the game objects at the start of a new point
@@ -35,11 +33,17 @@ export default class Game {
 
         this.p1.x = this.gameWidth / 4;
         this.p1.y = this.gameHeight;
+        this.p1.xv = 0;
+        this.p1.yv = 0;
         this.p1.jumpEnabled = true;
 
         this.p2.x = this.gameWidth * 3 / 4;
         this.p2.y = this.gameHeight;
+        this.p2.xv = 0;
+        this.p2.yv = 0;
         this.p2.jumpEnabled = true;
+
+        this.isFrozen = false;
     }
 
     // account for various game object collision events
@@ -87,32 +91,35 @@ export default class Game {
             }
         }
 
+        // ball contacts net
+        if (this.ballContactsNetTop()) {
+            [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
+            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet, 0);
+        } else if (this.ballContactsNetBottomLeft()) {
+            this.ball.x = this.gameWidth / 2 - this.netWidth / 2 - this.ball.radius;
+            this.ball.y += this.ball.yv;
+            this.ball.xv = -this.ball.xv * this.bounceNet;
+        } else if (this.ballContactsNetBottomRight()) {
+            this.ball.x = this.gameWidth / 2 + this.netWidth / 2 + this.ball.radius;
+            this.ball.y += this.ball.yv;
+            this.ball.xv = -this.ball.xv * this.bounceNet;
+        }
+
         // ball contacts wall
         if (this.ball.x < this.ball.radius) {
             this.ball.x = this.ball.radius;
+            this.ball.y += this.ball.yv;
             this.ball.xv = -this.ball.xv * this.bounce;
         } else if (this.ball.x > this.gameWidth - this.ball.radius) {
             this.ball.x = this.gameWidth - this.ball.radius;
+            this.ball.y += this.ball.yv;
             this.ball.xv = -this.ball.xv * this.bounce;
-        }
-
-        // ball contacts net
-        if (this.ballContactsCircle(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2)) {
-            [this.ball.x, this.ball.y] = this.getBallContactsCirclePosition(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
-            [this.ball.xv, this.ball.yv] = this.getBallContactsCircleVelocity(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), 0, 0, this.bounceNet, 0);
-        } else if (this.ball.y > this.gameHeight - this.netHeight + this.netWidth) {
-            if (Math.abs(this.gameWidth / 2 - (this.ball.x + this.ball.radius)) <= this.netWidth / 2) {
-                this.ball.x = this.gameWidth / 2 - this.netWidth / 2 - this.ball.radius;
-                this.ball.xv = -this.ball.xv * this.bounceNet;
-            } else if (Math.abs((this.ball.x - this.ball.radius) - this.gameWidth / 2) <= this.netWidth / 2) {
-                this.ball.x = this.gameWidth / 2 + this.netWidth / 2 + this.ball.radius;
-                this.ball.xv = -this.ball.xv * this.bounceNet;
-            }
         }
 
         // ball contacts floor
         if (this.ball.y >= this.gameHeight - this.ball.radius) {
             this.ball.y = this.gameHeight - this.ball.radius
+            this.ball.yv = -this.ball.yv * this.bounce;
 
             if (!this.isFrozen) {
                 this.isFrozen = true;
@@ -148,6 +155,22 @@ export default class Game {
             return true
         }
 		return false
+    }
+
+    ballContactsNetTop() {
+        return this.ballContactsCircle(this.gameWidth / 2, this.gameHeight - this.netHeight + (this.netWidth / 2), this.netWidth / 2);
+    }
+
+    ballContactsNetBottomLeft() {
+        return this.ball.y > this.gameHeight - this.netHeight + this.netWidth &&
+            Math.abs(Math.abs(this.ball.x + this.ball.radius - this.gameWidth / 2) < this.netWidth / 2) &&
+            this.ball.xv > 0;
+    }
+
+    ballContactsNetBottomRight() {
+        return this.ball.y > this.gameHeight - this.netHeight + this.netWidth && 
+            Math.abs(this.ball.x - this.ball.radius - this.gameWidth / 2) < this.netWidth / 2 &&
+            this.ball.xv < 0;
     }
 
     // calculate the position of the ball tangent to the arc of the circular object it has contacted
@@ -244,33 +267,30 @@ export default class Game {
         this.ball.y = newHeight * (this.ball.y / this.gameHeight);
         this.ball.xv = this.ball.xv * (newWidth / this.gameWidth);
         this.ball.yv = this.ball.yv * (newHeight / this.gameHeight);
-        this.ball.radius = newWidth * (24 / 1200);
-
-        this.netWidth = newWidth * (20 / 1200);
-        this.netHeight = newWidth * (100 / 1200);
+        this.ball.radius = newWidth * (24 / 1200) * this.ball.radiusMult;
 
         this.p1.x = newWidth * (this.p1.x / this.gameWidth);
         this.p1.y = newHeight * (this.p1.y / this.gameHeight);
         this.p1.xv = this.p1.xv * (newWidth / this.gameWidth);
         this.p1.yv = this.p1.yv * (newHeight / this.gameHeight);
-        this.p1.radius = newWidth * (56 / 1200);
-        this.p1.speed = newWidth * (5 / 1200);
-        this.p1.accel = newWidth * (5 / 1200);
-        this.p1.jump = newWidth * (5 / 1200);
+        this.p1.radius = newWidth * (56 / 1200) * this.p1.radiusMult;
+        this.p1.speed = newWidth * (5 / 1200) * this.p1.speedMult;
+        this.p1.jump = newWidth * (5 / 1200) * this.p1.jumpMult;
 
         this.p2.x = newWidth * (this.p2.x / this.gameWidth);
         this.p2.y = newHeight * (this.p2.y / this.gameHeight);
         this.p2.xv = this.p2.xv * (newWidth / this.gameWidth);
         this.p2.yv = this.p2.yv * (newHeight / this.gameHeight);
-        this.p2.radius = newWidth * (56 / 1200);
-        this.p2.speed = newWidth * (5 / 1200);
-        this.p2.accel = newWidth * (5 / 1200);
-        this.p2.jump = newWidth * (5 / 1200);
+        this.p2.radius = newWidth * (56 / 1200) * this.p2.radiusMult;
+        this.p2.speed = newWidth * (5 / 1200) * this.p2.speedMult;
+        this.p2.jump = newWidth * (5 / 1200) * this.p2.jumpMult;
 
-        this.gravity = newWidth * (0.1 / 1200);
-
+        this.gravity = newWidth * (0.1 / 1200) * this.gravityMult;
+        this.netWidth = newWidth * (20 / 1200) * this.netWidthMult;
+        this.netHeight = newWidth * (100 / 1200) * this.netHeightMult;
         this.gameWidth = newWidth;
         this.gameHeight = newHeight;
+        this.isFrozen = false;
     }
 
     // update the position/velocity of game objects

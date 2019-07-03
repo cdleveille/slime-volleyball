@@ -1,10 +1,6 @@
 export default class Ball {
-    constructor(radius, color) {
-        this.x = 0;
-        this.y = 0;
-        this.xv = 0;
-        this.yv = 0;
-        this.radius = radius;
+    constructor(radiusMult, color) {
+        this.radiusMult = radiusMult;
         this.color = color;
     }
 
@@ -35,7 +31,7 @@ export default class Ball {
         ctx.lineWidth = 1;
         ctx.strokeStyle = "#003300";
         ctx.stroke();
-
+        
         this.drawXInd(ctx);
     }
 
@@ -55,7 +51,7 @@ export default class Ball {
         }
 
         if (radius > 0) {
-            ctx.fillStyle = "#ADD8E6";
+            ctx.fillStyle = this.game.backgroundColor;
             ctx.beginPath();
             ctx.arc(this.x, this.radius / 2, radius, 0, 2 * Math.PI, false);
             ctx.fill();

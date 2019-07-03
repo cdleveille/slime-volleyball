@@ -1,6 +1,8 @@
 export default class AI {
     constructor(game) {
         this.game = game;
+        game.p1.ai = this;
+        game.p2.ai = this;
     }
 
     // return an action based on the state of the game
@@ -57,6 +59,12 @@ export default class AI {
                 }
                 if (Math.abs(x - (xLand + this.game.p2.radius * mult)) < margin) {
                     action = "stop";
+                }
+                if (xLand < this.game.gameWidth / 2 + this.game.p2.radius * 2.5 &&
+                    Math.abs(x - (xLand + this.game.p2.radius * mult)) < margin &&
+                    this.game.ball.y > this.game.gameHeight - this.game.p2.radius * 2.5 &&
+                    this.game.ball.yv > 0) {
+                        action = "jump";
                 }
             // ball will land on p1 side
             } else {
