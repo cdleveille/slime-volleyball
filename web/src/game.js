@@ -248,12 +248,12 @@ export default class Game {
         return [xvFinal, yvFinal];
     }
 
-    // convert from radians to degrees
+    // convert radians to degrees
     degrees(radians) {
         return (radians * 180) / Math.PI;
     }
 
-    // convert from degrees to radians
+    // convert degrees to radians
     radians(degrees) {
         return (degrees * Math.PI) / 180;
     }
@@ -300,9 +300,9 @@ export default class Game {
     update(step) {
         if (!this.isFrozen) {
             step = step * 170;
-            this.ball.update(step);
             this.p1.update(step);
             this.p2.update(step);
+            this.ball.update(step);
         }
         this.handleCollisions();
     }

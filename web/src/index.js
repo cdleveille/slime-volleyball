@@ -36,7 +36,6 @@ let game = new Game(scoreLimit, ctx, "#ADD8E6", p1, p2, ball, netWidthMult, netH
 let ai = new AI(game);
 
 let wh = new WindowHandler(canvas, game, windowPercent);
-wh.resizeGameWindow();
 
 let ballX;
 if (Math.random() >= 0.5) {

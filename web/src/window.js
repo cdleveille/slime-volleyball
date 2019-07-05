@@ -16,18 +16,8 @@ export default class WindowHandler{
             [canvas.width, canvas.height] = resizeCanvas();
             game.resize(canvas.width, canvas.height);
         });
-    }
 
-    resizeGameWindow() {
-        [this.canvas.width, this.canvas.height] = this.resizeCanvas();
-        this.game.resize(this.canvas.width, this.canvas.height);
-    }
-
-    resizeCanvas() {
-        if (window.innerHeight * this.pct * 2 > window.innerWidth * this.pct) {
-            return [window.innerWidth * this.pct, window.innerWidth * this.pct / 2];
-        } else {
-            return [window.innerHeight * this.pct * 2, window.innerHeight * this.pct];
-        }
+        [canvas.width, canvas.height] = resizeCanvas();
+        game.resize(canvas.width, canvas.height);
     }
 }
