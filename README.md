@@ -1,9 +1,9 @@
 ## Web (JavaScript)
 
-**Play Online**
-[cdleveille.com/slime.html](http://cdleveille.com/slime.html)
+**Play Online:**
+- [cdleveille.com/slime.html](http://cdleveille.com/slime.html)
 
-**Play from Source Code**
+**Play from Source Code:**
 1. Download or clone repository
 2. Install [Node.js](https://nodejs.org/en/)
 3. Install [http-server](https://www.npmjs.com/package/http-server): ```npm install http-server -g```
