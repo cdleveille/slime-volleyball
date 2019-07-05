@@ -1,4 +1,4 @@
-## WEB (JavaScript)
+## Web (JavaScript)
 
 1. Download or clone repository
 2. Install [Node.js](https://nodejs.org/en/)
@@ -6,7 +6,7 @@
 4. In \web, run: ```http-server -a localhost -p 8000 -c-1```
 5. Go to [http://localhost:8000/index.html](http://localhost:8000/index.html)
 
-## DESKTOP (Python)
+## Desktop (Python)
 
 **Play from Source Code (Windows, Mac, Linux):**
 1. Download or clone repository
