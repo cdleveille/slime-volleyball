@@ -48,23 +48,16 @@ export default class Game {
 
     // detect and account for various game object collision events
     handleCollisions() {
-        // p1 contacts floor
-        if (this.p1.y >= this.gameHeight) {
-            this.p1.y = this.gameHeight;
-            this.p1.jumpEnabled = true;
-            if (this.p1.jumpHeldDown && !this.p1.isAI) {
-                this.p1.yv = -this.p1.jump;
-                this.p1.jumpEnabled = false;
-            }
-        }
-
-        // p2 contacts floor
-        if (this.p2.y >= this.gameHeight) {
-            this.p2.y = this.gameHeight;
-            this.p2.jumpEnabled = true;
-            if (this.p2.jumpHeldDown && !this.p2.isAI) {
-                this.p2.yv = -this.p2.jump;
-                this.p2.jumpEnabled = false;
+        // player contacts floor
+        for (let i = 0; i < this.players.length; i++) {
+            let player = this.players[i];
+            if (player.y >= this.gameHeight) {
+                player.y = this.gameHeight;
+                player.jumpEnabled = true;
+                if (player.jumpHeldDown && !player.isAI) {
+                    player.yv = -player.jump;
+                    player.jumpEnabled = false;
+                }
             }
         }
 
@@ -258,7 +251,7 @@ export default class Game {
         return (degrees * Math.PI) / 180;
     }
 
-    // get the current time with high precision
+    // get the current time (high precision)
     timestamp() {
         return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
     }
