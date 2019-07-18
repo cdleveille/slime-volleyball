@@ -1,4 +1,4 @@
-__pycache__/
-build/
-build_exe.bat
-setup.py
+desktop/__pycache__/
+desktop/build/
+desktop/build_exe.bat
+desktop/setup.py
