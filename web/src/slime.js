@@ -1,4 +1,4 @@
-// http-server -a localhost -p 8000 -c-1    http://localhost:8000/index.html
+// http-server -a localhost -p 8000 -c-1    http://localhost:8000/slime.html
 
 import Ball from "/src/ball.js";
 import Player from "/src/player.js";
@@ -9,7 +9,7 @@ import AI from "/src/ai.js";
 let canvas = document.getElementById("gameScreen");
 let ctx = canvas.getContext("2d");
 
-let scoreLimit = 10,
+let scoreLimit = 11,
     windowPercent = 0.95,
     ballRadiusMult = 1.00,
     playerRadiusMult = 1.0,
@@ -37,13 +37,7 @@ let ai = new AI(game);
 
 let wh = new WindowHandler(canvas, game, windowPercent);
 
-let ballX;
-if (Math.random() >= 0.5) {
-    ballX = game.gameWidth / 4;
-} else {
-    ballX = game.gameWidth * 3 / 4;
-}
-game.resetPositions(ballX);
+game.resetPositions(game.gameWidth / 4);
 
 let updateRate = 500;
 let dt, now, last = game.timestamp(), step = 1 / updateRate;
