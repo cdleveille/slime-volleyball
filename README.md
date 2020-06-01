@@ -1,6 +1,6 @@
 ## Web (JavaScript)
 
-**Play Online:**
+**Play Online: (try resizing the window!)**
 - [cdleveille.com/slime.html](http://cdleveille.com/slime.html)
 
 **Play from Source Code:**
