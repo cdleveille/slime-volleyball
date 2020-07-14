@@ -1,8 +1,5 @@
 ## Web (JavaScript)
 
-**Play Online: (try resizing the window!)**
-- [cdleveille.com/slime.html](http://cdleveille.com/slime.html)
-
 **Play from Source Code:**
 1. Download or clone repository
 2. Install [Node.js](https://nodejs.org/en/)
